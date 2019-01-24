@@ -29,7 +29,7 @@ const { rnorm } = Normal(new BoxMuller(ad))
 //////////////////////////////////////////data///////////////////////////////////////
 var LondonBidata, LondonCovar, 
 params = [29.2655634435, 0.3944025839968, 73.05, 0.004303868154365, 45.66, 0.417917730919406, 0.530358893934836, 0.020285841729738, 3.49E-05, 8.01E-05, 0.979679198700577, 1940, 1944]
-var Np = 1
+var Np = 10
 var toler = 10e-8
 var w=0 , ws=0
 //begin mif2
@@ -83,7 +83,10 @@ var interpolBirth = linearInterpolator(d2)
   var t0 = params[11], tdata = params[12] 
   params.length -= 2 
   //***********************************************TIME LOOP************************************
-  for (k = t0; k <= 1964 ; k +=delT){
+  for (k = t0; k <= 1944 + delT ; k +=delT){
+    if (k <= tdata && k > tdata - delT) {
+      k = tdata
+    }
   if ( k === t0) {
     var Nlog = mathLib.toLogBarycentric([params[7], params[8], params[9], params[10]],4)
     var N = mathLib.fromLogBarycentric(Nlog, 4)
@@ -92,7 +95,6 @@ var interpolBirth = linearInterpolator(d2)
     params[8] = Math.round(m * N[1]),
     params[9] = Math.round(m * N[2]),
     params[10] = Math.round(m * N[3])
-  var y = [S, E, I, R, H]
   //begin mif2
   var paramNoiseM = Array(params.length).fill(null).map(() => Array(Np))
   var timeLen = dataCases.length;
@@ -145,7 +147,7 @@ var interpolBirth = linearInterpolator(d2)
       S += (births - trans[0] - trans[1])
       E += (trans[0] - trans[2] - trans[3]) 
       I += (trans[2] - trans[4] - trans[5]) 
-      R = pop - y[0] - y[1] - y[2]
+      R = pop - S - E - I
       H += trans[4] 
     }
     particles[np][7] = S
@@ -153,25 +155,25 @@ var interpolBirth = linearInterpolator(d2)
     particles[np][9] = I
     particles[np][10] = R
     //*****************************************RESAMPLE*******************************************************
-    if (k > tdata) {
+    if (k >= tdata) {
       var rho = particles[np][5], psi = particles[np][6]
       var mn = rho * H
       var v = mn * (1.0 - rho + psi * psi * mn)
       var tol = 1.0e-18
-      var modelCases = Number(dataCases[0][1])
+      var modelCases = Number(dataCases[Math.ceil((k - tdata) / delT)][1])
         if (modelCases > 0.0) {
           lik[np] = mathLib.pnorm(modelCases + 0.5, mn, Math.sqrt(v) + tol, 1, 0) - mathLib.pnorm(modelCases - 0.5, mn, Math.sqrt(v) + tol, 1, 0) + tol
         } else {
           lik[np] = mathLib.pnorm((modelCases + 0.5, mn, Math.sqrt(v) + tol, 1, 0)) + tol
         }
-       console.log(mn,v, Math.log(lik[np]))
+       // console.log(modelCases,mn,v, Math.log(lik[np]))
        loglik += Math.log(lik[np])
       }
   }//endNp
   if (loglik != 0) {
     for(let np = 0; np < Np; np++) {
       weight.push(Math.log(lik[np]) / loglik)
-    }
+    }console.log(weight)
   }
    w = 0, ws = 0
   for(let np = 0, nlost = 0; np < Np; np++) {
@@ -238,6 +240,29 @@ const numMapSteps = function (t1, t2, dt) {
 
 //   }
 // }
+ var nosortResamp = function (Np, weights, np, sample, offset) {
+  int i, j;
+  double du, u;
+
+  for (j = 1; j < Np; j++) weights[j] += weights[j-1];
+
+  if (weights[Np - 1] <= 0)
+    throw "in 'systematic_resampling': non-positive sum of weights"
+
+  du = weights[Np - 1] / np
+  u = -du * Math.rand();
+
+  for (i = 0, j = 0; j < np; j++) {
+    u += du;
+    // In the following line, the second test is needed to correct
+    // the infamous Bug of St. Patrick, 2017-03-17.
+    while ((u > weights[i]) && (i < Np - 1)) i++;
+    sample[j] = i
+  }
+  if (offset){// add offset if needed
+    for (j = 0; j < np; j++) p[j] += offset
+  }
+}
   
 
     
