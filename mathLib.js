@@ -4,13 +4,21 @@ let exp = 2.718281828
 let pi = 3.141592654
 var erf = require('math-erf')
 var seedrandom = require('seedrandom')
-var rng = seedrandom('915909831')
+var rng = seedrandom('1234')
 
-//* Set the seed for rnorm-In R:RNGkind("Mersenne-Twister",normal.kind="Ahrens-Dieter");set.seed(1234) 
-//or normal.kind="Box-Muller" or "BuggyKindermanRamage" or "Inversion" or "KindermanRamage"
+var libUnif = require('lib-r-math.js');
+const {
+    R: { numberPrecision },
+    rng: { MersenneTwister, timeseed }
+} = libUnif
+var U = new MersenneTwister(1234)
+// console.log(U.unif_rand());//0.8966972001362592
+
+//* Set the seed for rnorm and rgamma -In R:RNGkind("Mersenne-Twister",normal.kind="Box-Muller");set.seed(1234) 
 const libR = require('lib-r-math.js')
 var {
   Normal,
+  Gamma,
   rng: {
     LecuyerCMRG,
     normal: { BoxMuller }
@@ -18,19 +26,11 @@ var {
 } = libR
 const ad = new LecuyerCMRG(1234)
 const { rnorm } = Normal(new BoxMuller(ad))
-// console.log(rnorm(10))
+// console.log(rnorm())//-0.7129350418967081
 
-//* Set the seed for rgamma-In R:RNGkind("L'Ecuyer-CMRG", normal.kind="Box-Muller"); set.seed(1234)
-const {
-  Gamma
-  // rng: {
-  //   LecuyerCMRG,
-  //   normal: { BoxMuller }
-  // }
-} = libR
 const lc = new LecuyerCMRG(1234)
 const { rgamma } = Gamma(new BoxMuller(lc))
-// console.log(rgamma(1, 1, 0.1))
+// console.log(rgamma(1, 1, 0.5))//1.2294789082038762
 
 //* Set the seed for rbinom-In R: RNGkind("Knuth-TAOCP-2002");set.seed(1234)
 const {
@@ -40,6 +40,7 @@ const {
 const kn = new KnuthTAOCP2002(1234)
 const { rbinom } = Binomial(kn)
 // console.log(rbinom(2,40,.5))
+
 mathLib.pnorm = function (x, mu = 0, sd = 1, lower_tail = true, give_log = false) {
   if (sd < 0) {
     return NaN
@@ -187,9 +188,6 @@ mathLib.numEulerSteps = function(t1, t2, dt) {
   // (i.e., so that the actual dt does not exceed the specified dt
   // by more than the relative tolerance 'tol')
   // and to counteract roundoff error.
-  // It seems to work well, but is not guaranteed:
-  // suggestions would be appreciated.
-
   if (t1 >= t2) {
     dt = 0
     nstep = 0
@@ -201,6 +199,30 @@ mathLib.numEulerSteps = function(t1, t2, dt) {
     dt = (t2 - t1)/nstep
   }
   return nstep
+}
+
+mathLib.nosortResamp = function (Np, weight, np, offset) {
+  // np : number of particles to resample
+  var sample = new Array(Np)
+  for (j = 1; j < Np; j++) weight[j] += weight[j-1];
+
+  if (weight[Np - 1] <= 0)
+    throw "in 'systematic_resampling': non-positive sum of weight"
+
+  var du = weight[Np - 1] / np
+  var u = -du * Math.random();
+
+  for (i = 0, j = 0; j < np; j++) {
+    u += du;
+    // In the following line, the second test is needed to correct
+    // the infamous Bug of St. Patrick, 2017-03-17.
+    while ((u > weight[i]) && (i < Np - 1)) i++;
+    sample[j] = i
+  }
+  if (offset){// add offset if needed
+    for (j = 0; j < np; j++) p[j] += offset
+  }
+return sample
 }
 module.exports = mathLib;
 
