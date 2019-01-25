@@ -83,7 +83,7 @@ var interpolBirth = linearInterpolator(d2)
   var t0 = params[11], tdata = params[12] 
   params.length -= 2 
   //***********************************************TIME LOOP************************************
-  for (k = t0; k <= 1944 + delT ; k +=delT){
+  for (k = t0; k <= tdata + 30*delT ; k +=delT){
     if (k <= tdata && k > tdata - delT) {
       k = tdata
     }
@@ -103,7 +103,7 @@ var interpolBirth = linearInterpolator(d2)
     for (cnt = 0; cnt < params.length; cnt++){
       for (np = 0; np < Np; np++){
         if(rwIn[cnt] === 1){
-          paramNoiseM[cnt][np] = params[cnt] *( 1 + cmn * rw[Nmif - 1][np] * rnorm(1))// weighted
+          paramNoiseM[cnt][np] = params[cnt] *( 1 + cmn * rw[Nmif - 1][np] * rnorm(1))// weightsed
         } else {
           paramNoiseM[cnt][np] = params[cnt]
         } 
@@ -115,7 +115,7 @@ var interpolBirth = linearInterpolator(d2)
   var loglik = 0
   var lik = new Array(Np)
   //****************************************PARTICLE LOOP**************************************//
-  for (np = 0, weight = []; np < Np; np++){//calc for each particle
+  for (np = 0, weights = []; np < Np; np++){//calc for each particle
     var trans = new Array(6).fill(0)
     var R0 = particles[np][0], amplitude = particles[np][1], gamma = particles[np][2], mu = particles[np][3], sigma = particles[np][4] 
     var S = particles[np][7], E = particles[np][8], I = particles[np][9], R = particles[np][10], H = 0
@@ -172,23 +172,36 @@ var interpolBirth = linearInterpolator(d2)
   }//endNp
   if (loglik != 0) {
     for(let np = 0; np < Np; np++) {
-      weight.push(Math.log(lik[np]) / loglik)
-    }console.log(weight)
-  }
-   w = 0, ws = 0
-  for(let np = 0, nlost = 0; np < Np; np++) {
-    if (weight[np] > toler) {
-      w += weight[np]
-      ws += Math.pow(weight[np], 2)
-    } else {
-      weight[np] = 0
-      nlost++
+      weights.push(Math.log(lik[np]) / loglik)
     }
-    // console.log(w,ws)
   }
-  // if ( w != 0) console.log(Math.log(w/Np))
+    //************************************RESAMPLE******************************************//
+  var sampleNum = mathLib.nosortResamp(Np, weights, Np, 0)
+  for (np = 0; np < Np; np++) { // copy the particles
+    particles[np] = particles[sampleNum[np]]
   }
-  //************************************RESAMPLE******************************************//
+   console.log(particles[1])   
+
+
+
+
+
+
+
+
+  //  w = 0, ws = 0
+  // for(let np = 0, nlost = 0; np < Np; np++) {
+  //   if (weights[np] > toler) {
+  //     w += weights[np]
+  //     ws += Math.pow(weights[np], 2)
+  //   } else {
+  //     weights[np] = 0
+  //     nlost++
+  //   }
+  //   // console.log(w,ws)
+  // }
+  // // if ( w != 0) console.log(Math.log(w/Np))
+  }//endTime
 
 const logMeanExp = function (x) {
   var mx = Math.max(...x)
@@ -240,29 +253,7 @@ const numMapSteps = function (t1, t2, dt) {
 
 //   }
 // }
- var nosortResamp = function (Np, weights, np, sample, offset) {
-  int i, j;
-  double du, u;
-
-  for (j = 1; j < Np; j++) weights[j] += weights[j-1];
-
-  if (weights[Np - 1] <= 0)
-    throw "in 'systematic_resampling': non-positive sum of weights"
-
-  du = weights[Np - 1] / np
-  u = -du * Math.rand();
-
-  for (i = 0, j = 0; j < np; j++) {
-    u += du;
-    // In the following line, the second test is needed to correct
-    // the infamous Bug of St. Patrick, 2017-03-17.
-    while ((u > weights[i]) && (i < Np - 1)) i++;
-    sample[j] = i
-  }
-  if (offset){// add offset if needed
-    for (j = 0; j < np; j++) p[j] += offset
-  }
-}
+ 
   
 
     
