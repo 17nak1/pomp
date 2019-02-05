@@ -167,7 +167,7 @@ mathLib.toLogBarycentric = function (xN, n) {
 }
 
 mathLib.rnorm = function (mu = 0, sd = 1) {
-  var val = Math.sqrt(-2.0 * Math.log(rng())) * Math.cos(2.0 * pi * rng())
+  var val = Math.sqrt(-2.0 * Math.log(U.unif_rand())) * Math.cos(2.0 * pi * U.unif_rand())
   return val * sd + mu
 }
 mathLib.matrix = function (Nrows) {
@@ -201,28 +201,42 @@ mathLib.numEulerSteps = function(t1, t2, dt) {
   return nstep
 }
 
-mathLib.nosortResamp = function (Np, weight, np, offset) {
+mathLib.nosortResamp = function (nw, w, np, p, offset) {
   // np : number of particles to resample
-  var sample = new Array(Np)
-  for (j = 1; j < Np; j++) weight[j] += weight[j-1];
-
-  if (weight[Np - 1] <= 0)
+  // var p = new Array(np)
+  for (j = 1; j < nw; j++) {
+   w[j] += w[j-1]
+ }
+  if (w[nw - 1] <= 0) {
     throw "in 'systematic_resampling': non-positive sum of weight"
+  }
+  var du = w[nw - 1] / np
+  var u =  du * U.unif_rand()
 
-  var du = weight[Np - 1] / np
-  var u = -du * Math.random();
-
-  for (i = 0, j = 0; j < np; j++) {
-    u += du;
+  for (j = 1, i = 0; j < np; j++) {
+    u += (j - 1) * du
     // In the following line, the second test is needed to correct
     // the infamous Bug of St. Patrick, 2017-03-17.
-    while ((u > weight[i]) && (i < Np - 1)) i++;
-    sample[j] = i
+    while ((u > w[i]) && (i < nw - 1)) i++;//looking for the low weight
+    p[j] = i
   }
   if (offset){// add offset if needed
     for (j = 0; j < np; j++) p[j] += offset
   }
-return sample
+return p
 }
+// mathLib.systematicResampling = function (weights)
+// {
+//   var n, perm
+
+//   n = weights.length
+//   // PROTECT(perm = NEW_INTEGER(n));
+//   // PROTECT(weights = AS_NUMERIC(weights));
+//   // GetRNGstate();
+//   mathLib.nosortResamp(n, weights, n, perm, 1)
+//   // PutRNGstate();
+//   // UNPROTECT(2);
+//   return(perm)
+// }
 module.exports = mathLib;
 
