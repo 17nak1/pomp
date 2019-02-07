@@ -2,7 +2,8 @@
 
 fs = require('fs')
 let fmin = require ('fmin')
-var mathLib = require('./mathLib')
+let mathLib = require('./mathLib')
+let snippet = require('./modelSnippet.js')
 const mathjs = require('mathjs') 
 var linearInterpolator = require('linear-interpolator/node_main')
 
@@ -30,19 +31,19 @@ const { rnorm } = Normal(new BoxMuller(ad))
 //////////////////////////////////////////data///////////////////////////////////////
 var LondonBidata = [], LondonCovar = []
 var rate = new Array(6) 
-var params = [29.2655634435, 0.3944025839968, 73.05, 0.004303868154365, 45.66, 0.417917730919406, 0.530358893934836, 0.020285841729738, 3.49E-05, 8.01E-05, 0.979679198700577]
+// var params = [29.2655634435, 0.3944025839968, 73.05, 0.004303868154365, 45.66, 0.417917730919406, 0.530358893934836, 0.020285841729738, 3.49E-05, 8.01E-05, 0.979679198700577]
+var params = [2.878407e+01 , 4.034646e-01,  7.305000e+01  ,1.030760e-03  ,4.566000e+01  ,4.429944e-01  ,1.647752e-01,  4.094919e-02  ,1.912634e-05 ,7.823758e-08, 9.590316e-01]
 var times =[1940, 1944]
-var Np = 1200
+var Np = 50
+var nvars = 4
 var toler = 1e-17
-
+var nlost = 0
 //begin mif2
 var Nmif = 1
 var rw_size = .05, rw = new Array(Nmif).fill(null).map(() => Array(Np).fill(0.05))//change it to matrix
 
 var rwIndex = new Array(11).fill(0)
 rwIndex[7] = 1; rwIndex[8] = 1; rwIndex[9] = 1; rwIndex[10] = 1 // only states
-var indx = new Array(11).fill(1)
-indx[2] = 0; indx[4] = 0
 
 
 //* 1st data set
@@ -75,48 +76,49 @@ for (let i = 0; i < dataCovar.length - 1; i++) {
 }
 var interpolPop = linearInterpolator(d1)
 var interpolBirth = linearInterpolator(d2)
-  
+var timeLen = dataCases.length 
 // function poly (paramNoise, time, trans) {
   var va = 0, seas
   var t0 = times[0], tdata = times[1] 
   var particles = [], sampleNum = new Array(Np).fill(0).map(Number.call, Number)
+  var predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
+  var timeCounter = 0
   //***********************************************TIME LOOP************************************
   for (k = t0; k < Number(dataCases[dataCases.length - 2][0]) + delT / 3; k +=delT){//Number(dataCases[dataCases.length - 2][0]) + delT / 3
     if (k <= tdata && k > tdata - delT) {
       k = tdata
     }
-  if ( k === t0) {
-    var Nlog = mathLib.toLogBarycentric([params[7], params[8], params[9], params[10]],4)
-    var N = mathLib.fromLogBarycentric(Nlog, 4)
-    var m = interpolPop(k) / (N[0] + N[1] + N[2] + N[3]);
-    params[7] = Math.round(m * N[0]),
-    params[8] = Math.round(m * N[1]),
-    params[9] = Math.round(m * N[2]),
-    params[10] = Math.round(m * N[3])
-  //begin mif2
-  var paramNoiseM = Array(params.length).fill(null).map(() => Array(Np))
-
-  var timeLen = dataCases.length;
-  var s = (1 - 50 * timeLen * coolFrac) / (coolFrac - 1)
-  var cmn = (s + 1)/ (s + k + (Nmif - 1) * timeLen)
-    for (cnt = 0; cnt < params.length; cnt++){
-      for (np = 0; np < Np; np++){
-        if(rwIndex[cnt] === 1){
-          paramNoiseM[cnt][np] = params[cnt] * ( 1 + cmn * rw[Nmif - 1][np] * rnorm(1))// weighted??????????????????????????
-        } else {
-          paramNoiseM[cnt][np] = params[cnt]
-        } 
-      }   
-    }
-    particles = mathjs.transpose(paramNoiseM)
-  }//endif ( k === t0)
+   if ( k === t0) {
+     var Nlog = mathLib.toLogBarycentric([params[7], params[8], params[9], params[10]],4)
+     var N = mathLib.fromLogBarycentric(Nlog, 4)
+     var m = interpolPop(k) / (N[0] + N[1] + N[2] + N[3]);
+     params[7] = Math.round(m * N[0]),
+     params[8] = Math.round(m * N[1]),
+     params[9] = Math.round(m * N[2]),
+     params[10] = Math.round(m * N[3])
+   //begin mif2
+   var paramNoiseM = Array(params.length).fill(null).map(() => Array(nvars))
+   var states = Array(Np).fill(null).map(() => Array(nvars))
+   var s = (1 - 50 * timeLen * coolFrac) / (coolFrac - 1)
+   var cmn = (s + 1)/ (s + k + (Nmif - 1) * timeLen)
+     for (cnt = 0; cnt < params.length; cnt++){
+       for (np = 0; np < Np; np++){
+         if(rwIndex[cnt] === 1){
+           paramNoiseM[cnt][np] = params[cnt] * ( 1 + cmn * rw[Nmif - 1][np] * rnorm(1))// weighted??????????????????????????
+         } else {
+           paramNoiseM[cnt][np] = params[cnt]
+         } 
+       }   
+     }
+     particles = mathjs.transpose(paramNoiseM)
+   }//endif ( k === t0)
   var pop = interpolPop(k)
   var birthrate = interpolBirth(k) 
   var tt = (k - Math.floor(k)) * 365.25
   var loglik = 0
   var lik = new Array(Np)
   var weights = []
-var aa = 1,t_1 = 1944.1916495550995, t_2 = 1944.229979466119
+
   //****************************************PARTICLE LOOP**************************************////////////////////////////////////////////////////////////////////////////
   for (np = 0; np < Np; np++){//calc for each particle
     var trans = new Array(6).fill(0)
@@ -146,6 +148,8 @@ var aa = 1,t_1 = 1944.1916495550995, t_2 = 1944.229979466119
       S += (births - trans[0] - trans[1])
       E += (trans[0] - trans[2] - trans[3]) 
       I += (trans[2] - trans[4] - trans[5]) 
+      // E = (E > 0) ? (E + trans[0] - trans[2] - trans[3]) : 0 
+      // I = (I > 0) ? (I + trans[2] - trans[4] - trans[5]) :  0
       R = pop - S - E - I
       H += trans[4] 
     }
@@ -153,57 +157,53 @@ var aa = 1,t_1 = 1944.1916495550995, t_2 = 1944.229979466119
     particles[np][8] = E
     particles[np][9] = I
     particles[np][10] = R
+    states[np][0] = S
+    states[np][1] = E
+    states[np][2] = I
+    states[np][3] = R
     //***********RESAMPLE*************
-    if (k >= tdata) {
+    if (k >  tdata) {
       var rho = particles[np][5], psi = particles[np][6]
       var mn = rho * H
       var v = mn * (1.0 - rho + psi * psi * mn)
       var tol = 1.0e-18
-      var modelCases = Number(dataCases[Math.ceil((k - tdata) / delT)][1])
-      if(!isNaN(modelCases)){
-        if (modelCases > 0.0) {
-          lik[np] = mathLib.pnorm(modelCases + 0.5, mn, Math.sqrt(v) + tol, 1, 0) - mathLib.pnorm(modelCases - 0.5, mn, Math.sqrt(v) + tol, 1, 0) + tol
-        } else {
-          lik[np] = mathLib.pnorm((modelCases + 0.5, mn, Math.sqrt(v) + tol, 1, 0)) + tol
-        }
-      } else {
-        lik[np] = 1
-      }
-      loglik += Math.log(lik[np])
-    }
+      var modelCases = Number(dataCases[timeCounter][1])
+      var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
+      weights.push(likvalue)
+    } 
   }//end particle loop/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  if (k >= tdata) {
-    if (loglik != 0) {
-      for(let np = 0; np < Np; np++) {
-        weights.push(Math.log(lik[np]) / loglik)
+  
+  if (k > tdata) {
+    for (let j = 0; j< nvars;j++) {
+      var sum = 0, nlost = 0
+      for (let nrow =0; nrow < Np; nrow++){
+        if (states[nrow][j]) {
+          sum += states[nrow][j]
+        } else {
+          nlost++
+        }
       }
-      mathLib.nosortResamp(Np, weights, Np, sampleNum, 0); 
-      for (np = 0; np < Np; np++) { // copy the particles
-        particles[np] = [].concat(particles[sampleNum[np]])
-      }
+      predictionMean[timeCounter][j] = sum / (Np - nlost) 
     }
-  }
+    timeCounter++
+    mathLib.nosortResamp(Np, weights, Np, sampleNum, 0); 
+    for (np = 0; np < Np; np++) { // copy the particles
+      particles[np] = [].concat(particles[sampleNum[np]])
+    }
+  }  
 }//endTime
-
-var res = []
-for(i = 0; i < Np;i++){
-  res.push([particles[i][9]])
-}
 
 const createCsvWriter = require('csv-writer').createArrayCsvWriter;
 const csvWriter = createCsvWriter({
-  header: [],
-  path: './file.csv'
+  header: ['S', 'E', 'I', 'R'],
+  path: './mean.csv'
 })
  
- 
-csvWriter.writeRecords(res)
+csvWriter.writeRecords(predictionMean)
   .then(() => {
   console.log('...Done')
 })
   
-  
-console.log(particles[Np - 1]) 
 const logMeanExp = function (x) {
   var mx = Math.max(...x)
   var s = x.map((x,i) => Math.exp(x - mx))
