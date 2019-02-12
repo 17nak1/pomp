@@ -196,14 +196,13 @@ mathLib.numEulerSteps = function(t1, t2, dt) {
     nstep = 1
   } else {
     nstep = Math.ceil((t2 - t1) / dt /(1 + tol))
-    dt = (t2 - t1)/nstep
+    dt = (t2 - t1) / nstep
   }
   return nstep
 }
 
 mathLib.nosortResamp = function (nw, w, np, p, offset) {
   // np : number of particles to resample
-  // var p = new Array(np)
   for (j = 1; j < nw; j++) {
    w[j] += w[j-1]
  }
@@ -211,19 +210,16 @@ mathLib.nosortResamp = function (nw, w, np, p, offset) {
     throw "in 'systematic_resampling': non-positive sum of weight"
   }
   var du = w[nw - 1] / np
-  var u =  du * U.unif_rand()
+  var u = -du * U.unif_rand()
 
-  for (j = 1, i = 0; j < np; j++) {
-    u += (j - 1) * du
-    // In the following line, the second test is needed to correct
-    // the infamous Bug of St. Patrick, 2017-03-17.
+  for (j = 0, i = 0; j < np; j++) {
+    u += du
     while ((u > w[i]) && (i < nw - 1)) i++;//looking for the low weight
     p[j] = i
   }
   if (offset){// add offset if needed
     for (j = 0; j < np; j++) p[j] += offset
   }
-return p
 }
 // mathLib.systematicResampling = function (weights)
 // {
