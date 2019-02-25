@@ -51,18 +51,12 @@ const { rnorm } = Normal(new BoxMuller(ad))
 var LondonBidata = [], LondonCovar = []
 var rate = new Array(6) 
 // var params = [3.165652e+01 , 3.887624e-01 , 7.305000e+01 , 1.698730e-02  ,4.566000e+01,  4.813669e-01  ,1.963092e-01 , 2.831066e-03 ,3.476483e-04 ,  2.109135e-08,9.968213e-01]
-var params = [2.392104e+01 , 4.798750e-01 , 7.305000e+01 , 7.127033e-02 , 4.566000e+01 , 5.921962e-01 , 2.508957e-01 , 2.750615e-02,1.652620e-04 ,2.774394e-06, 9.723258e-01]
+var params = [3.183505e+01 , 3.142802e-01 , 7.305000e+01 , 4.611219e-04 , 4.566000e+01 , 4.434342e-01 , 2.169509e-01 , 5.955415e-02 ,1.483370e-04  , 2.707856e-07 ,9.402972e-01 ]
 var times =[1940, 1944]
-var Np = 50
+var Np = 10
 var nvars 
 var toler = 1e-17
 var nlost = 0
-//begin mif2
-var Nmif = 1
-var rw_size = .05, rw = new Array(Nmif).fill(null).map(() => Array(Np).fill(0.05))//change it to matrix
-var coolFrac = 0.5 
-var rwIndex = new Array(11).fill(0)
-rwIndex[0] = 1; rwIndex[1] = 1; rwIndex[2] = 1; rwIndex[3] = 1 // only states
 
 //* 1st data set
 var London_covar = fs.readFileSync('./London_covar.csv').toString()
@@ -88,13 +82,13 @@ for (let i = 0; i < dataCovar.length - 1; i++) {
 var interpolPop = linearInterpolator(d1)
 var interpolBirth = linearInterpolator(d2)
 
-//////////////////////////////////////////////////////////////////////////////////////* main function
+//////////////////////////////////////////////////////////////////////////////////////* main function//////////////////////////////////////////////////////////////////////
 
 var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, R_0, I_0] = params
 var paramsIC = [S_0, E_0, R_0, I_0, H = 0]
 var [t0, tdata] = times
 var nvars = paramsIC.length
-var deltaT = 0.03832991102 // = 2/52 
+var deltaT = 14 / 365.25
 var dt = 1 / 365.25
 var pop , birthrate
 var timeLen = dataCases.length 
@@ -108,7 +102,7 @@ var predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
 var filterMean = []
 var timeCountData = 0, ws = 0, vsq, sumsq, ess, condLoglik = [], Loglik = 0, lik
 var maxFail = 300,  hvalue =[]
-
+var states = Array(Np).fill(null).map(() => Array(nvars))
 
 // if ( k === t0) {
   // var Nlog = mathLib.toLogBarycentric([state[0], state[1], state[2], state[3]],4)
@@ -120,29 +114,16 @@ var maxFail = 300,  hvalue =[]
   state[2] = Math.round(m * N[2]),
   state[3] = Math.round(m * N[3]),
   state[4] = 0;hvalue.push(state)
-// }
-//begin mif2
-var stateNoiseM = Array(nvars).fill(null).map(() => Array(Np))
-var states = Array(Np).fill(null).map(() => Array(nvars))
-var s = (1 - 50 * timeLen * coolFrac) / (coolFrac - 1)
-var cmn = (s + 1)/ (s + t0 + (Nmif - 1) * timeLen)
-  for (cnt = 0; cnt < state.length; cnt++){
-    for (np = 0; np < Np; np++){
-      if(rwIndex[cnt] === 11){//no noise
-        stateNoiseM[cnt][np] = state[cnt] * ( 1 + cmn * rw[Nmif - 1][np] * rnorm(1))// weighted??????????????????????????
-      } else {
-        stateNoiseM[cnt][np] = state[cnt]
-      } 
-    }   
-  }
-particles = mathjs.transpose(stateNoiseM) //;console.log(particles)
-predictionMean[0] = [].concat(state)
+for ( i=0; i < Np; i++){
+  particles[i] = [].concat(state)
+}
+
+
 //***********************************************TIME LOOP************************************
-for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
-  // if (k <= tdata && k > tdata - deltaT) {
-  //   k = tdata
-  // }
-  
+for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
+  if ( k > tdata && k <= tdata + deltaT) {
+    k = tdata + deltaT
+  }
   var loglik = 0
   var lik = new Array(Np)
   var weights = [], normalWeights = []
@@ -150,18 +131,14 @@ for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0
   //****************************************PARTICLE LOOP**************************************////////////////////////////////////////////////////////////////////////////
   for (np = 0; np < Np; np++){ //calc for each particle
     var trans = new Array(6).fill(0)
-    
     var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
-    
-     
-       
+      
     // transitions between classes
     if (k <= tdata || k > 1965 - tdata ) {
       steps = mathLib.numMapSteps(k, k + deltaT, dt)
     } else {
-      steps = mathLib.numMapSteps(Number(dataCovar[timeCountData][0]), Number(dataCovar[timeCountData + 1][0]), dt)
+      steps = mathLib.numMapSteps(k, Number(dataCovar[timeCountData + 1][0]), dt)
     }
-
     var del_t = (1 / steps )* deltaT 
     for (let stp = 0; stp < steps; stp++) { // steps in each time interval
       var st = k + stp * del_t
@@ -182,7 +159,7 @@ for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0
       rate[3] = mu// natural E death
       rate[4] = gamma// recovery
       rate[5] = mu// natural I death 
-      // if( st >1944.001 && st <1944.005)console.log(st,rate[0])  
+      // if(  st <1940.005)console.log(st,rate[0])  
       var births = rpois(1, birthrate * (1 - va) * del_t )// Poisson births
       mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
       mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
@@ -206,24 +183,25 @@ for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0
     states[np][4] = H || 0
     //***********RESAMPLE*************
     
-    hvalue.push([S,E,I,R,H])
-    if (k >=  tdata) {hvalue.push([S,E,I,R,H])
+    // hvalue.push([S,E,I,R,H])
+    if (k >=  t0) {hvalue.push([S,E,I,R,H])//k >= tdata
       var rho = params[5], psi = params[6]
       var mn = rho * H
       var v = mn * (1.0 - rho + psi * psi * mn)
       var tol = 1.0e-18
-      var modelCases = Number(dataCases[timeCountData][1])
+      var modelCases = Number(dataCases[timeCountData][1])//;console.log("time",k,dataCases[timeCountData])
       var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
     } 
     particles[np][4] = 0
   }////////////////////////////////////////////////////////////////end particle loop///////////////////////////////////////////////////////////////////////////////////////
-  if(k < tdata){
-    for (np = 0; np < Np; np++) { // copy the particles
-      particles[np] = [].concat(particles[np])
-    }
-  }
-  if (k >= t0) {
+  // if(k < tdata){
+  //   for (np = 0; np < Np; np++) { // copy the particles
+  //     particles[np] = [].concat(particles[np])
+  //   }
+  // }
+  // if ( k == 1940.0766598220398 ) console.log(weights)
+  if (k >= t0) {//k >= tdata
     //normalize
     let sumOfWeights = 0
     for (let i = 0; i < Np; i++) {
@@ -244,7 +222,7 @@ for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0
         nlost++
       }
     }
-   
+   // if ( k == 1940.1533196440796 ) console.log(weights)
     if (nlost >= Np) { 
       allFail = 1 // all particles are lost
     } else {
@@ -260,7 +238,7 @@ for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0
     condLoglik.push(lik)
     Loglik += lik
 
-    mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)
+    mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)//;console.log(k, sampleNum)
     for (np = 0; np < Np; np++) { // copy the particles
       particles[np] = [].concat(particles[sampleNum[np]])
       particles[np][nvars - 1] = 0
@@ -278,7 +256,7 @@ for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0
           }
         }
         sum /= Np
-        predictionMean[timeCountData + 1][j] = sum
+        predictionMean[timeCountData][j] = sum
       }
   
       // compute prediction variance
