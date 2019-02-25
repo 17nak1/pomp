@@ -18,6 +18,7 @@
     IEEE Trans. Sig. Proc. 50:174--188, 2002.
  */
 
+
 fs = require('fs')
 let fmin = require ('fmin')
 let mathLib = require('./mathLib')
@@ -49,10 +50,10 @@ const { rnorm } = Normal(new BoxMuller(ad))
 //////////////////////////////////////////data///////////////////////////////////////
 var LondonBidata = [], LondonCovar = []
 var rate = new Array(6) 
-// var params = [2.879243e+01, 3.669313e-01, 7.305000e+01, 7.020601e-03, 4.566000e+01, 4.920423e-01, 1.709873e-01, 2.560858e-02, 1.496166e-05, 5.523655e-08, 9.743764e-01]
-var params = [3.013710e+01,  3.816660e-01,  7.305000e+01,  6.151897e-03,  4.566000e+01,  4.215311e-01,  1.871425e-01,  7.947781e-02,  2.218937e-04 ,5.494138e-07,9.202997e-01  ]
+// var params = [3.165652e+01 , 3.887624e-01 , 7.305000e+01 , 1.698730e-02  ,4.566000e+01,  4.813669e-01  ,1.963092e-01 , 2.831066e-03 ,3.476483e-04 ,  2.109135e-08,9.968213e-01]
+var params = [2.392104e+01 , 4.798750e-01 , 7.305000e+01 , 7.127033e-02 , 4.566000e+01 , 5.921962e-01 , 2.508957e-01 , 2.750615e-02,1.652620e-04 ,2.774394e-06, 9.723258e-01]
 var times =[1940, 1944]
-var Np = 500
+var Np = 50
 var nvars 
 var toler = 1e-17
 var nlost = 0
@@ -87,37 +88,39 @@ for (let i = 0; i < dataCovar.length - 1; i++) {
 var interpolPop = linearInterpolator(d1)
 var interpolBirth = linearInterpolator(d2)
 
-//* main function
+//////////////////////////////////////////////////////////////////////////////////////* main function
 
 var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, R_0, I_0] = params
-var state = [S_0, E_0, R_0, I_0, H = 0]
+var paramsIC = [S_0, E_0, R_0, I_0, H = 0]
 var [t0, tdata] = times
-var nvars = state.length
+var nvars = paramsIC.length
 var deltaT = 0.03832991102 // = 2/52 
-var dt = 1/ 365.25
-
+var dt = 1 / 365.25
+var pop , birthrate
 var timeLen = dataCases.length 
-
 var va = 0, seas
-var particles = []
+
+var particles = [], state =[]
 var sampleNum = new Array(Np)
 var doPredictionVariance = 0, doPredictionMean = 1, doFilterMean = 0 , allFail = 0
 var predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
 var predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
 var filterMean = []
-var timeCounter = 0, ws = 0, vsq, sumsq, ess, condLoglik = [], Loglik = 0, lik
-var stateVec =[]
+var timeCountData = 0, ws = 0, vsq, sumsq, ess, condLoglik = [], Loglik = 0, lik
 var maxFail = 300,  hvalue =[]
-// var R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] ,rho = params[5], psi = params[6]
+
 
 // if ( k === t0) {
-  var Nlog = mathLib.toLogBarycentric([state[0], state[1], state[2], state[3]],4)
-  var N = mathLib.fromLogBarycentric(Nlog, 4)
+  // var Nlog = mathLib.toLogBarycentric([state[0], state[1], state[2], state[3]],4)
+  // var N = mathLib.fromLogBarycentric(Nlog, 4)
+  var N = [S_0, E_0, R_0, I_0]
   var m = interpolPop(t0) / (N[0] + N[1] + N[2] + N[3]);
   state[0] = Math.round(m * N[0]),
   state[1] = Math.round(m * N[1]),
   state[2] = Math.round(m * N[2]),
-  state[3] = Math.round(m * N[3])
+  state[3] = Math.round(m * N[3]),
+  state[4] = 0;hvalue.push(state)
+// }
 //begin mif2
 var stateNoiseM = Array(nvars).fill(null).map(() => Array(Np))
 var states = Array(Np).fill(null).map(() => Array(nvars))
@@ -132,16 +135,14 @@ var cmn = (s + 1)/ (s + t0 + (Nmif - 1) * timeLen)
       } 
     }   
   }
-particles = mathjs.transpose(stateNoiseM) 
-var h = []
+particles = mathjs.transpose(stateNoiseM) //;console.log(particles)
+predictionMean[0] = [].concat(state)
 //***********************************************TIME LOOP************************************
-for (k = t0; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
-  if (k <= tdata && k > tdata - deltaT) {
-    k = tdata
-  }
-  var pop = interpolPop(k)
-  var birthrate = interpolBirth(k) 
-  var tt = (k - Math.floor(k)) * 365.25
+for (k = t0  ; k < 1960; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
+  // if (k <= tdata && k > tdata - deltaT) {
+  //   k = tdata
+  // }
+  
   var loglik = 0
   var lik = new Array(Np)
   var weights = [], normalWeights = []
@@ -151,30 +152,41 @@ for (k = t0; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += d
     var trans = new Array(6).fill(0)
     
     var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
-    // if ( k === 1944) {S=90986; E=688;I= 500; R=2352428.10446462;  H=319039}
     
-    if ((tt >= 7 && tt <= 100) || (tt >= 115 && tt <= 199) || (tt >= 252 && tt <= 300) || (tt >= 308 && tt <= 356)) {
-      seas = 1 + amplitude * 0.2411 / 0.7589
-    } else {
-      seas = 1 - amplitude
-    }                 
-    var beta = R0 * (gamma + mu) * (sigma + mu) * seas / sigma //seasonal transmission rate
-    var foi = beta * I / pop
-    rate[0] = foi//force of infection
-    rate[1] = mu// natural S death
-    rate[2] = sigma// rate of ending of latent stage
-    rate[3] = mu// natural E death
-    rate[4] = gamma// recovery
-    rate[5] = mu// natural I death       
+     
+       
     // transitions between classes
-    steps = mathLib.numMapSteps(k, k + deltaT, dt)
+    if (k <= tdata || k > 1965 - tdata ) {
+      steps = mathLib.numMapSteps(k, k + deltaT, dt)
+    } else {
+      steps = mathLib.numMapSteps(Number(dataCovar[timeCountData][0]), Number(dataCovar[timeCountData + 1][0]), dt)
+    }
 
-    var del_t = (1 / steps )* deltaT
+    var del_t = (1 / steps )* deltaT 
     for (let stp = 0; stp < steps; stp++) { // steps in each time interval
+      var st = k + stp * del_t
+      pop = interpolPop(st)
+      birthrate = interpolBirth(st) 
+      tt = ((st - Math.floor(st)) * 365.25)
+     
+      if ((tt >= 7 && tt <= 100) || (tt >= 115 && tt <= 199) || (tt >= 252 && tt <= 300) || (tt >= 308 && tt <= 356)) {
+        seas = 1 + amplitude * 0.2411 / 0.7589
+      } else {
+        seas = 1 - amplitude
+      }                 
+      var beta = R0 * (gamma + mu) * (sigma + mu) * seas / sigma //seasonal transmission rate
+      var foi = beta * I / pop
+      rate[0] = foi//force of infection
+      rate[1] = mu// natural S death
+      rate[2] = sigma// rate of ending of latent stage
+      rate[3] = mu// natural E death
+      rate[4] = gamma// recovery
+      rate[5] = mu// natural I death 
+      // if( st >1944.001 && st <1944.005)console.log(st,rate[0])  
       var births = rpois(1, birthrate * (1 - va) * del_t )// Poisson births
       mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
       mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
-      mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)
+      mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)//;console.log(trans)
       S += (births - trans[0] - trans[1])
       E += (trans[0] - trans[2] - trans[3]) 
       I += (trans[2] - trans[4] - trans[5]) 
@@ -193,20 +205,25 @@ for (k = t0; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += d
     states[np][3] = R || 0
     states[np][4] = H || 0
     //***********RESAMPLE*************
-    // if ( k === 1944) {S=90986; E=688;I= 500; R=2352428.10446462;  H=319039}
+    
+    hvalue.push([S,E,I,R,H])
     if (k >=  tdata) {hvalue.push([S,E,I,R,H])
       var rho = params[5], psi = params[6]
       var mn = rho * H
       var v = mn * (1.0 - rho + psi * psi * mn)
       var tol = 1.0e-18
-      var modelCases = Number(dataCases[timeCounter][1])
+      var modelCases = Number(dataCases[timeCountData][1])
       var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
     } 
-    // stateVec.push([states[np]])
+    particles[np][4] = 0
   }////////////////////////////////////////////////////////////////end particle loop///////////////////////////////////////////////////////////////////////////////////////
-if(k == 1944 || k == 1944.03832991102 || k==1944.0766598220398){console.log(k, S, E,I,R,H)}
-  if (k >= tdata) {
+  if(k < tdata){
+    for (np = 0; np < Np; np++) { // copy the particles
+      particles[np] = [].concat(particles[np])
+    }
+  }
+  if (k >= t0) {
     //normalize
     let sumOfWeights = 0
     for (let i = 0; i < Np; i++) {
@@ -261,7 +278,7 @@ if(k == 1944 || k == 1944.03832991102 || k==1944.0766598220398){console.log(k, S
           }
         }
         sum /= Np
-        predictionMean[timeCounter][j] = sum
+        predictionMean[timeCountData + 1][j] = sum
       }
   
       // compute prediction variance
@@ -273,7 +290,7 @@ if(k == 1944 || k == 1944.03832991102 || k==1944.0766598220398){console.log(k, S
             sumsq += vsq ** 2
           }
         }
-        predictionVariance[timeCounter][j] = sumsq / (Np - 1) 
+        predictionVariance[timeCountData][j] = sumsq / (Np - 1) 
       }
 
       //  compute filter mean
@@ -297,7 +314,7 @@ if(k == 1944 || k == 1944.03832991102 || k==1944.0766598220398){console.log(k, S
         }
       }
     }
-    timeCounter++
+    timeCountData++
   }  
 }//endTime
 
