@@ -17,7 +17,7 @@
     A Tutorial on Particle Filters for Online Nonlinear, Non-Gaussian Bayesian Tracking.
     IEEE Trans. Sig. Proc. 50:174--188, 2002.
  */
-
+//conditional log liklihood(time) =log(sum(w_i, i in 0:Np) / Np)
 
 fs = require('fs')
 let fmin = require ('fmin')
@@ -26,34 +26,13 @@ let snippet = require('./modelSnippet.js')
 const mathjs = require('mathjs') 
 var linearInterpolator = require('linear-interpolator/node_main')
 
-//* Set the seed for rnorm-In R:RNGkind("L'Ecuyer-CMRG", normal.kind="Box-Muller");set.seed(1234) 
-const libR = require('lib-r-math.js')
-const {
-  Poisson,
-  rng: { MersenneTwister },
-  rng: { normal: { Inversion } }
-} = libR
-const mt = new MersenneTwister(0)// 
-const { rpois } = Poisson(new Inversion(mt))
-mt.init(1234)
-
-var {
-  Normal,
-  rng: {
-    LecuyerCMRG,
-    normal: { BoxMuller }
-  }
-} = libR
-const ad = new LecuyerCMRG(0)
-const { rnorm } = Normal(new BoxMuller(ad))
-
 //////////////////////////////////////////data///////////////////////////////////////
 var LondonBidata = [], LondonCovar = []
 var rate = new Array(6) 
 // var params = [3.165652e+01 , 3.887624e-01 , 7.305000e+01 , 1.698730e-02  ,4.566000e+01,  4.813669e-01  ,1.963092e-01 , 2.831066e-03 ,3.476483e-04 ,  2.109135e-08,9.968213e-01]
-var params = [3.183505e+01 , 3.142802e-01 , 7.305000e+01 , 4.611219e-04 , 4.566000e+01 , 4.434342e-01 , 2.169509e-01 , 5.955415e-02 ,1.483370e-04  , 2.707856e-07 ,9.402972e-01 ]
+var params = [3.132490e+01 , 3.883620e-01 , 7.305000e+01 , 6.469830e-04 , 4.566000e+01 , 4.598709e-01 , 1.462546e-01 , 3.399189e-02 ,2.336327e-04 ,4.221789e-07 ,9.657741e-01 ]
 var times =[1940, 1944]
-var Np = 10
+var Np = 1000
 var nvars 
 var toler = 1e-17
 var nlost = 0
@@ -96,24 +75,19 @@ var va = 0, seas
 
 var particles = [], state =[]
 var sampleNum = new Array(Np)
-var doPredictionVariance = 0, doPredictionMean = 1, doFilterMean = 0 , allFail = 0
+var doPredictionVariance = 1, doPredictionMean = 1, doFilterMean = 1 , allFail = 0
 var predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
 var predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
-var filterMean = []
-var timeCountData = 0, ws = 0, vsq, sumsq, ess, condLoglik = [], Loglik = 0, lik
-var maxFail = 300,  hvalue =[]
+var condLoglik = Array(timeLen).fill(null).map(() => Array(1))
+var filterMean = Array(timeLen).fill(null).map(() => Array(nvars))
+var timeCountData = 0, ws = 0, vsq, sumsq, ess, Loglik = 0, lik //condLoglik = []
+var maxFail = 300,  stateSaved =[]
 var states = Array(Np).fill(null).map(() => Array(nvars))
 
 // if ( k === t0) {
   // var Nlog = mathLib.toLogBarycentric([state[0], state[1], state[2], state[3]],4)
   // var N = mathLib.fromLogBarycentric(Nlog, 4)
-  var N = [S_0, E_0, R_0, I_0]
-  var m = interpolPop(t0) / (N[0] + N[1] + N[2] + N[3]);
-  state[0] = Math.round(m * N[0]),
-  state[1] = Math.round(m * N[1]),
-  state[2] = Math.round(m * N[2]),
-  state[3] = Math.round(m * N[3]),
-  state[4] = 0;hvalue.push(state)
+  state = snippet.initz(interpolPop(t0), S_0, E_0, R_0, I_0)
 for ( i=0; i < Np; i++){
   particles[i] = [].concat(state)
 }
@@ -134,41 +108,18 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
     var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
       
     // transitions between classes
-    if (k <= tdata || k > 1965 - tdata ) {
+    if (k <= tdata || k > 1965 - deltaT ) {
       steps = mathLib.numMapSteps(k, k + deltaT, dt)
     } else {
-      steps = mathLib.numMapSteps(k, Number(dataCovar[timeCountData + 1][0]), dt)
+      steps = mathLib.numEulerSteps(k, Number(dataCases[timeCountData + 1][0]), dt)
     }
     var del_t = (1 / steps )* deltaT 
     for (let stp = 0; stp < steps; stp++) { // steps in each time interval
       var st = k + stp * del_t
-      pop = interpolPop(st)
-      birthrate = interpolBirth(st) 
-      tt = ((st - Math.floor(st)) * 365.25)
-     
-      if ((tt >= 7 && tt <= 100) || (tt >= 115 && tt <= 199) || (tt >= 252 && tt <= 300) || (tt >= 308 && tt <= 356)) {
-        seas = 1 + amplitude * 0.2411 / 0.7589
-      } else {
-        seas = 1 - amplitude
-      }                 
-      var beta = R0 * (gamma + mu) * (sigma + mu) * seas / sigma //seasonal transmission rate
-      var foi = beta * I / pop
-      rate[0] = foi//force of infection
-      rate[1] = mu// natural S death
-      rate[2] = sigma// rate of ending of latent stage
-      rate[3] = mu// natural E death
-      rate[4] = gamma// recovery
-      rate[5] = mu// natural I death 
-      // if(  st <1940.005)console.log(st,rate[0])  
-      var births = rpois(1, birthrate * (1 - va) * del_t )// Poisson births
-      mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
-      mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
-      mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)//;console.log(trans)
-      S += (births - trans[0] - trans[1])
-      E += (trans[0] - trans[2] - trans[3]) 
-      I += (trans[2] - trans[4] - trans[5]) 
-      R = pop - S - E - I
-      H += trans[4] 
+      st = st.toFixed(10)
+      var simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], interpolPop(st), interpolBirth(st))
+      S = simulateValue[0]; E = simulateValue[1], I = simulateValue[2], R = simulateValue[3], H = simulateValue[4]
+      
     }
     particles[np][0] = S
     particles[np][1] = E
@@ -181,28 +132,18 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
     states[np][2] = I || 0
     states[np][3] = R || 0
     states[np][4] = H || 0
+     
     //***********RESAMPLE*************
-    
-    // hvalue.push([S,E,I,R,H])
-    if (k >=  t0) {hvalue.push([S,E,I,R,H])//k >= tdata
-      var rho = params[5], psi = params[6]
-      var mn = rho * H
-      var v = mn * (1.0 - rho + psi * psi * mn)
-      var tol = 1.0e-18
-      var modelCases = Number(dataCases[timeCountData][1])//;console.log("time",k,dataCases[timeCountData])
+    stateSaved.push([S,E,I,R,H])
+    if (k >= Number(dataCases[0][0])){
+      var modelCases = Number(dataCases[timeCountData][1])
       var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
-    } 
-    particles[np][4] = 0
+      particles[np][4] = 0
+    }
   }////////////////////////////////////////////////////////////////end particle loop///////////////////////////////////////////////////////////////////////////////////////
-  // if(k < tdata){
-  //   for (np = 0; np < Np; np++) { // copy the particles
-  //     particles[np] = [].concat(particles[np])
-  //   }
-  // }
-  // if ( k == 1940.0766598220398 ) console.log(weights)
-  if (k >= t0) {//k >= tdata
-    //normalize
+  //normalize
+  if (k >= Number(dataCases[0][0])){
     let sumOfWeights = 0
     for (let i = 0; i < Np; i++) {
       sumOfWeights += weights[i]
@@ -210,7 +151,6 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
     for (let i = 0; i < Np; i++) {
       normalWeights[i] = weights[i] / sumOfWeights
     }
-
     // check the weights and compute sum and sum of squares
     var  w = 0, ws = 0, nlost = 0
     for (let i = 0; i < Np; i++) {
@@ -222,12 +162,12 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
         nlost++
       }
     }
-   // if ( k == 1940.1533196440796 ) console.log(weights)
     if (nlost >= Np) { 
       allFail = 1 // all particles are lost
     } else {
       allFail = 0
     }
+    // console.log(k,allFail)
     if (allFail) {
       lik = Math.log(toler) // minimum log-likelihood
       ess = 0  // zero effective sample size
@@ -235,15 +175,14 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
       ess = w * w / ws  // effective sample size
       lik = Math.log(w / Np)// mean of weights is likelihood
     }
-    condLoglik.push(lik)
+    condLoglik[timeCountData] = [timeCountData + 1, lik]//;console.log(condLoglik)
     Loglik += lik
-
     mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)//;console.log(k, sampleNum)
     for (np = 0; np < Np; np++) { // copy the particles
       particles[np] = [].concat(particles[sampleNum[np]])
       particles[np][nvars - 1] = 0
     }
-
+    // Compute outputs
     for (let j = 0; j< nvars; j++) {
       // compute prediction mean
       if (doPredictionMean || doPredictionVariance) {
@@ -257,20 +196,18 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
         }
         sum /= Np
         predictionMean[timeCountData][j] = sum
-      }
-  
+      }  
       // compute prediction variance
       if (doPredictionVariance) {
         sumsq = 0
         for (let nrow = 0; nrow < Np; nrow++){
           if (states[nrow][j]) {
             vsq = states[nrow][j] - sum
-            sumsq += vsq ** 2
+            sumsq += Math.pow(vsq, 2)
           }
         }
         predictionVariance[timeCountData][j] = sumsq / (Np - 1) 
       }
-
       //  compute filter mean
       if (doFilterMean) {
         if (allFail) {   // unweighted average
@@ -280,22 +217,22 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
               ws += states[nrow][j]
             }
           } 
-          filterMean[j] = ws / Np
+          filterMean[timeCountData][j] = ws / Np//;console.log(ws / Np)
         } else {      // weighted average
           ws = 0
           for (let nrow =0; nrow < Np; nrow++){
             if (states[nrow][j]) {
-              ws += states[nrow][j] * weights[k]
+              ws += states[nrow][j] * weights[nrow]
             }
           }
-          filterMean[j] = ws / w
+          filterMean[timeCountData][j] = ws / w
         }
       }
     }
-    timeCountData++
-  }  
+    timeCountData++ 
+  }
 }//endTime
-
+console.log(Loglik)
 const createCsvWriter = require('csv-writer').createArrayCsvWriter;
 const csvWriter = createCsvWriter({
   header: ['S', 'E', 'I', 'R', 'H'],
@@ -307,36 +244,45 @@ csvWriter.writeRecords(predictionMean)
   console.log('...predictionMean')
 })
 
-var createCsvWriter2 = require('csv-writer').createArrayCsvWriter;
-var csvWriter2 = createCsvWriter2({
-  header: ['S', 'E', 'I', 'R', 'H'],
-  path: './states.csv'
-})
-csvWriter2.writeRecords(states)
-  .then(() => {
-  console.log('...states')
-})
-
-var createCsvWriter2 = require('csv-writer').createArrayCsvWriter;
-var csvWriter2 = createCsvWriter2({
+const createCsvWriter11 = require('csv-writer').createArrayCsvWriter;
+const csvWriter11 = createCsvWriter11({
   header: ['S', 'E', 'I', 'R', 'H'],
   path: './predvar.csv'
 })
  
-csvWriter2.writeRecords(predictionVariance)
+csvWriter11.writeRecords(predictionVariance)
   .then(() => {
-  console.log('...predvar')
+  console.log('...predictionVar')
+})
+
+var createCsvWriter1 = require('csv-writer').createArrayCsvWriter;
+var csvWriter1 = createCsvWriter1({
+  header: ['S', 'E', 'I', 'R', 'H'],
+  path: './filterMean.csv'
+})
+csvWriter1.writeRecords(filterMean)
+  .then(() => {
+  console.log('...filterMean')
 })
 
 var createCsvWriter2 = require('csv-writer').createArrayCsvWriter;
 var csvWriter2 = createCsvWriter2({
-  header:['S', 'E', 'I', 'R', 'H'],
-  path: './hvalue.csv'
-})
- 
-csvWriter2.writeRecords(hvalue)
+  header: [],
+  path: './condLogliklihood.csv'
+}) 
+csvWriter2.writeRecords(condLoglik)
   .then(() => {
-  console.log('...hvalue')
+  console.log('...condLoglik')
+})
+
+var createCsvWriter3 = require('csv-writer').createArrayCsvWriter;
+var csvWriter3 = createCsvWriter3({
+  header:['S', 'E', 'I', 'R', 'H'],
+  path: './stateSaved.csv'
+})
+csvWriter3.writeRecords(stateSaved)
+  .then(() => {
+  console.log('...stateSaved')
 })
   
 const logMeanExp = function (x) {
