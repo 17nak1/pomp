@@ -29,7 +29,7 @@ var linearInterpolator = require('linear-interpolator/node_main')
 //////////////////////////////////////////data///////////////////////////////////////
 var LondonBidata = [], LondonCovar = []
 var rate = new Array(6) 
-
+// var params = [3.165652e+01 , 3.887624e-01 , 7.305000e+01 , 1.698730e-02  ,4.566000e+01,  4.813669e-01  ,1.963092e-01 , 2.831066e-03 ,3.476483e-04 ,  2.109135e-08,9.968213e-01]
 var params = [3.132490e+01 , 3.883620e-01 , 7.305000e+01 , 6.469830e-04 , 4.566000e+01 , 4.598709e-01 , 1.462546e-01 , 3.399189e-02 ,2.336327e-04 ,4.221789e-07 ,9.657741e-01 ]
 var times =[1940, 1944]
 var Np = 100
@@ -87,7 +87,7 @@ var states = Array(Np).fill(null).map(() => Array(nvars))
 // if ( k === t0) {
   // var Nlog = mathLib.toLogBarycentric([state[0], state[1], state[2], state[3]],4)
   // var N = mathLib.fromLogBarycentric(Nlog, 4)
-  state = snippet.initz(interpolPop(t0), S_0, E_0, R_0, I_0)
+  state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
 for ( i=0; i < Np; i++){
   particles[i] = [].concat(state)
 }
@@ -127,11 +127,11 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
     particles[np][3] = R
     particles[np][4] = H
    
-    // states[np][0] = S || 0
-    // states[np][1] = E || 0
-    // states[np][2] = I || 0
-    // states[np][3] = R || 0
-    // states[np][4] = H || 0
+    states[np][0] = S || 0
+    states[np][1] = E || 0
+    states[np][2] = I || 0
+    states[np][3] = R || 0
+    states[np][4] = H || 0
      
     //***********RESAMPLE*************
     stateSaved.push([S,E,I,R,H])
@@ -188,8 +188,8 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
       if (doPredictionMean || doPredictionVariance) {
         var sum = 0, nlost = 0
         for (let nrow =0; nrow < Np; nrow++){
-          if (particles[nrow][j]) {
-            sum += particles[nrow][j]
+          if (states[nrow][j]) {
+            sum += states[nrow][j]
           } else {
             nlost++
           }
@@ -201,8 +201,8 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
       if (doPredictionVariance) {
         sumsq = 0
         for (let nrow = 0; nrow < Np; nrow++){
-          if (particles[nrow][j]) {
-            vsq = particles[nrow][j] - sum
+          if (states[nrow][j]) {
+            vsq = states[nrow][j] - sum
             sumsq += Math.pow(vsq, 2)
           }
         }
@@ -213,16 +213,16 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
         if (allFail) {   // unweighted average
           ws = 0
           for (let nrow =0; nrow < Np; nrow++){
-            if (particles[nrow][j]) {
-              ws += particles[nrow][j]
+            if (states[nrow][j]) {
+              ws += states[nrow][j]
             }
           } 
           filterMean[timeCountData][j] = ws / Np//;console.log(ws / Np)
         } else {      // weighted average
           ws = 0
           for (let nrow =0; nrow < Np; nrow++){
-            if (particles[nrow][j]) {
-              ws += particles[nrow][j] * weights[nrow]
+            if (states[nrow][j]) {
+              ws += states[nrow][j] * weights[nrow]
             }
           }
           filterMean[timeCountData][j] = ws / w
