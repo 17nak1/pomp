@@ -1,29 +1,55 @@
 
 snippet = {}
 let mathLib = require('./mathLib')
-
-snippet.skeleton = function (params, t, N, pop, birthrate) {
-  var seas, dy = []
-  var R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] 
-  var beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma
-  var S = N[0], E = N[1], R = N[2], I = N[3]
-  var va = snippet.skeletonVaccine(t)
-  var tt = (t - Math.floor(t)) * 365.25
+//* Set the seed for rnorm-In R:RNGkind("L'Ecuyer-CMRG", normal.kind="Box-Muller");set.seed(1234) 
+const libR = require('lib-r-math.js')
+const {
+  Poisson,
+  rng: { MersenneTwister },
+  rng: { normal: { Inversion } }
+} = libR
+const mt = new MersenneTwister(0)// 
+const { rpois } = Poisson(new Inversion(mt))
+mt.init(1234)
+snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
+  var seas, births, beta, beta0, foi, R0, tt, va
+  var trans = new Array(6).fill(0)
+  var rate = new Array(6) 
+  var deltaT = 14 / 365.25
+  var dt = 1 / 365.25 
+  
+  R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] 
+  beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma
+  // var S = N[0], E = N[1], I = N[2], R = N[3], H = N[4]
+  va = snippet.rprocessVaccine(t)
+  tt = (t - Math.floor(t)) * 365.25
   if ((tt >= 7 && tt <= 100) || (tt >= 115 && tt <= 199) || (tt >= 252 && tt <= 300) || (tt >= 308 && tt <= 356)) {
     seas = 1 + amplitude * 0.2411 / 0.7589
   } else {
     seas = 1 - amplitude
-  }
-  var Beta = beta0 * seas / pop
-  dy[0] = birthrate * (1 - va) - Beta * S * I - mu * S
-  dy[1] = Beta * S * I - (sigma + mu) * E
-  dy[2] = gamma * I - mu * R + birthrate * va
-  dy[3] = sigma * E - (gamma + mu) * I
-  dy[4] = gamma * I
-  return dy
+  }                 
+  beta = R0 * (gamma + mu) * (sigma + mu) * seas / sigma //seasonal transmission rate
+  foi = beta * I / pop//;if( t<1945.05 && t>1945) console.log(t, foi)
+  rate[0] = foi//force of infection
+  rate[1] = mu// natural S death
+  rate[2] = sigma// rate of ending of latent stage
+  rate[3] = mu// natural E death
+  rate[4] = gamma// recovery
+  rate[5] = mu// natural I death 
+   // if( t < 1944 && t>=1943.98631074606) console.log(t , S ,H)
+  births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
+  mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
+  mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
+  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)//;console.log(trans)
+  S += (births - trans[0] - trans[1])
+  E += (trans[0] - trans[2] - trans[3]) 
+  I += (trans[2] - trans[4] - trans[5]) 
+  R = pop - S - E - I
+  H += trans[4] 
+   // if( t<1944 && t>=1943.98631074606)  console.log(t,births, trans[0] ,trans[1], births- trans[0] -trans[1])
+  return [S, E, I, R, H]
 }
-
-snippet.skeletonVaccine = function(t) {
+snippet.rprocessVaccine = function(t) {
   var vaccineRate
   if (t < 1968)
     vaccineRate = 0
@@ -111,12 +137,12 @@ snippet.skeletonVaccine = function(t) {
     vaccineRate = 0.89
   return vaccineRate
 }
-snippet.initz = function(pop, S, E, R, I) {
-  var m = pop / (S + E + R + I),
-    S = Math.round(m * S),
-    E = Math.round(m * E),
-    R = Math.round(m * R),
-    I = Math.round(m * I),
+snippet.initz = function(pop, S_0, E_0, R_0, I_0) {
+  var m = pop / (S_0 + E_0 + R_0 + I_0),
+    S = Math.round(m * S_0),
+    E = Math.round(m * E_0),
+    R = Math.round(m * R_0),
+    I = Math.round(m * I_0),
     H = 0
   return [S, E, R, I, H]
 }
