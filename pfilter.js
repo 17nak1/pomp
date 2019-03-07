@@ -32,7 +32,7 @@ var rate = new Array(6)
 // var params = [3.165652e+01 , 3.887624e-01 , 7.305000e+01 , 1.698730e-02  ,4.566000e+01,  4.813669e-01  ,1.963092e-01 , 2.831066e-03 ,3.476483e-04 ,  2.109135e-08,9.968213e-01]
 var params = [3.132490e+01 , 3.883620e-01 , 7.305000e+01 , 6.469830e-04 , 4.566000e+01 , 4.598709e-01 , 1.462546e-01 , 3.399189e-02 ,2.336327e-04 ,4.221789e-07 ,9.657741e-01 ]
 var times =[1940, 1944]
-var Np = 100
+var Np = 1000
 var nvars 
 var toler = 1e-17
 var nlost = 0
@@ -63,8 +63,8 @@ var interpolBirth = linearInterpolator(d2)
 
 //////////////////////////////////////////////////////////////////////////////////////* main function//////////////////////////////////////////////////////////////////////
 
-var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, R_0, I_0] = params
-var paramsIC = [S_0, E_0, R_0, I_0, H = 0]
+var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, I_0, R_0] = params
+var paramsIC = [S_0, E_0, I_0, R_0, H = 0]
 var [t0, tdata] = times
 var nvars = paramsIC.length
 var deltaT = 14 / 365.25
@@ -87,7 +87,7 @@ var states = Array(Np).fill(null).map(() => Array(nvars))
 // if ( k === t0) {
   // var Nlog = mathLib.toLogBarycentric([state[0], state[1], state[2], state[3]],4)
   // var N = mathLib.fromLogBarycentric(Nlog, 4)
-  state = snippet.initz(interpolPop(t0), S_0, E_0, R_0, I_0)
+  state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
 for ( i=0; i < Np; i++){
   particles[i] = [].concat(state)
 }
@@ -134,9 +134,9 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
     states[np][4] = H || 0
      
     //***********RESAMPLE*************
-    
+    stateSaved.push([S,E,I,R,H])
     if (k >= Number(dataCases[0][0])){
-      stateSaved.push([S,E,I,R,H])
+      // stateSaved.push([S,E,I,R,H])
       var modelCases = Number(dataCases[timeCountData][1])
       var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
