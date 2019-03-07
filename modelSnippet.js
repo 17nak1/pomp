@@ -137,14 +137,14 @@ snippet.rprocessVaccine = function(t) {
     vaccineRate = 0.89
   return vaccineRate
 }
-snippet.initz = function(pop, S_0, E_0, R_0, I_0) {
+snippet.initz = function(pop, S_0, E_0, I_0, R_0) {
   var m = pop / (S_0 + E_0 + R_0 + I_0),
     S = Math.round(m * S_0),
     E = Math.round(m * E_0),
     R = Math.round(m * R_0),
     I = Math.round(m * I_0),
     H = 0
-  return [S, E, R, I, H]
+  return [S, E, I, R, H]
 }
 
 snippet.dmeasure = function (rho, psi, H, dCases, giveLog = 1) {
