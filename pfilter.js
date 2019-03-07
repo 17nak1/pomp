@@ -45,7 +45,7 @@ for (let i = 1; i < lines.length; i++) {
 }
 var dataCovar = [LondonCovar][0]
 //* 2nd data set
-var London_BiData = fs.readFileSync('./London_BiData.csv').toString()
+var London_BiData = fs.readFileSync('./London_BiData1.csv').toString()
 var lines = London_BiData.split('\n')
 for (let i = 1; i < lines.length; i++) {
   LondonBidata.push(lines[i].split(','))
@@ -87,7 +87,7 @@ var states = Array(Np).fill(null).map(() => Array(nvars))
 // if ( k === t0) {
   // var Nlog = mathLib.toLogBarycentric([state[0], state[1], state[2], state[3]],4)
   // var N = mathLib.fromLogBarycentric(Nlog, 4)
-  state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
+  state = snippet.initz(interpolPop(t0), S_0, E_0, R_0, I_0)
 for ( i=0; i < Np; i++){
   particles[i] = [].concat(state)
 }
@@ -95,8 +95,8 @@ for ( i=0; i < Np; i++){
 
 //***********************************************TIME LOOP************************************
 for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
-  if ( k > tdata && k <= tdata + deltaT) {
-    k = tdata + deltaT
+  if ( k > tdata -deltaT && k <= tdata) {
+    k = tdata
   }
   var loglik = 0
   var lik = new Array(Np)
@@ -134,8 +134,9 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
     states[np][4] = H || 0
      
     //***********RESAMPLE*************
-    stateSaved.push([S,E,I,R,H])
+    
     if (k >= Number(dataCases[0][0])){
+      stateSaved.push([S,E,I,R,H])
       var modelCases = Number(dataCases[timeCountData][1])
       var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
