@@ -134,9 +134,9 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
     states[np][4] = H || 0
      
     //***********RESAMPLE*************
-    stateSaved.push([S,E,I,R,H])
+    
     if (k >= Number(dataCases[0][0])){
-      // stateSaved.push([S,E,I,R,H])
+      stateSaved.push([S,E,I,R,H])
       var modelCases = Number(dataCases[timeCountData][1])
       var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
