@@ -3,42 +3,23 @@ var mathLib = {}
 let exp = 2.718281828
 let pi = 3.141592654
 var erf = require('math-erf')
-var seedrandom = require('seedrandom')
-var rng = seedrandom('1234')
 
 var libUnif = require('lib-r-math.js');
 const {
     R: { numberPrecision },
     rng: { MersenneTwister, timeseed }
 } = libUnif
-var U = new MersenneTwister(1234)
-// console.log(U.unif_rand());//0.8966972001362592
+var U = new MersenneTwister(0)
+ // console.log(U.unif_rand());//0.8966972001362592
 
-//* Set the seed for rnorm and rgamma -In R:RNGkind("Mersenne-Twister",normal.kind="Box-Muller");set.seed(1234) 
 const libR = require('lib-r-math.js')
-var {
-  Normal,
-  Gamma,
-  rng: {
-    LecuyerCMRG,
-    normal: { BoxMuller }
-  }
-} = libR
-const ad = new LecuyerCMRG(1234)
-const { rnorm } = Normal(new BoxMuller(ad))
-// console.log(rnorm())//-0.7129350418967081
-
-const lc = new LecuyerCMRG(1234)
-const { rgamma } = Gamma(new BoxMuller(lc))
-// console.log(rgamma(1, 1, 0.5))//1.2294789082038762
-
 //* Set the seed for rbinom-In R: RNGkind("Knuth-TAOCP-2002");set.seed(1234)
 const {
   Binomial,
   rng: { KnuthTAOCP2002 }
 } = libR
 const kn = new KnuthTAOCP2002(1234)
-const { rbinom } = Binomial(kn)
+const { rnorm, rbinom } = Binomial(kn)
 // console.log(rbinom(2,40,.5))
 
 mathLib.pnorm = function (x, mu = 0, sd = 1, lower_tail = true, give_log = false) {
@@ -55,48 +36,58 @@ mathLib.pnorm = function (x, mu = 0, sd = 1, lower_tail = true, give_log = false
   return ans
 }
 
-mathLib.dpois = function (x, lambda) {
-  let ans, total = 0
-  if (isNaN(x) || isNaN(lambda) || lambda < 0) {
-    return NaN
+
+mathLib.numEulerSteps = function(t1, t2, dt) {
+  var DOUBLE_EPS = 10e-8
+  var tol = Math.sqrt(DOUBLE_EPS)
+  var nstep
+  // nstep will be the number of Euler steps to take in going from t1 to t2, note also that the stepsize changes.
+  // this choice is meant to be conservative (i.e., so that the actual dt does not exceed the specified dt
+  // by more than the relative tolerance 'tol') and to counteract roundoff error.
+  if (t1 >= t2) {
+    dt = 0
+    nstep = 0
+  } else if (t1 + dt >= t2) {
+    dt = t2 - t1
+    nstep = 1
+  } else {
+    nstep = Math.ceil((t2 - t1) / dt /(1 + tol))
+    dt = (t2 - t1) / nstep
   }
-  if (!Number.isInteger(x)) {
-    return 0
-  }
-  if (x < 0 || !isFinite(x)) {
-    return 0
-  }
-  x = Math.round(x)
-  ans = -lambda + x * Math.log(lambda)
-  for (let i = 1; i <= x; i++) {
-    total += Math.log(i)
-  }
-  let logAns = ans - total
-  return Math.exp(logAns)
+  return nstep
 }
 
-mathLib.factorial = function (intValue) {
-  var i, nextNumber, carret, result
-  if (intValue === 0) {
-    return '1'
-  }
-  if (!intValue) {
-    return ''
-  }
-  result = intValue.toString().split('').reverse().map(Number)
-  while (--intValue) {
-    i = carret = 0
-    while ((nextNumber = result[i++]) !== undefined || carret) {
-      carret = (nextNumber || 0) * intValue + carret
-      result[i - 1] = carret % 10
-      carret = parseInt(carret / 10)
-    }
-  }
-  return result.reverse().join('')
+mathLib.numMapSteps = function (t1, t2, dt) {
+  var DOUBLE_EPS = 10e-8
+  var tol = Math.sqrt(DOUBLE_EPS)
+  var nstep
+  // nstep will be the number of discrete-time steps to take in going from t1 to t2.
+  nstep = Math.floor((t2 - t1) / dt /(1 - tol))
+  return (nstep > 0) ? nstep : 0
 }
+
+mathLib.nosortResamp = function (nw, w, np, p, offset) {
+  for (j = 1; j < nw; j++) {
+   w[j] += w[j-1]
+ }
+  if (w[nw - 1] <= 0) {
+    throw "in 'systematic_resampling': non-positive sum of weight"
+  }
+  var du = w[nw - 1] / np
+  var u = -du * U.unif_rand()//Math.random()
+
+  for (j = 0, i = 0; j < np; j++) {
+    u += du
+    while ((u > w[i]) && (i < nw - 1)) i++;//looking for the low weight
+    p[j] = i
+  }
+  if (offset){// add offset if needed
+    for (j = 0; j < np; j++) p[j] += offset
+  }
+}
+
 
 mathLib.reulermultinom = function (m = 1, size, rateAdd, dt, transAdd, rate, trans) {
-  // console.log(size)
   var p = 0
   var j, k
   if ((size < 0) || (dt < 0) || (Math.floor(size + 0.5) !== size)) {
@@ -130,109 +121,15 @@ mathLib.reulermultinom = function (m = 1, size, rateAdd, dt, transAdd, rate, tra
   }
 }
 
-mathLib.logit = function (p) {
-  return Math.log(p / (1 - p))
-}
-mathLib.expit = function (x) {
-  return 1 / (1 + Math.exp(-x))
-}
-
-mathLib.rgammawn = function (sigma, dt) {
-  var sigmasq
-  sigmasq = Math.pow(sigma, 2)
-  return (sigmasq > 0) ? rgamma(1, dt / sigmasq, sigmasq) : dt
-}
-
-mathLib.fromLogBarycentric = function (xN, n) {
-  var sum = 0, xt = []
-  for (let i = 0; i < n; i++) {
-    xt.push(Math.exp(xN[i]))
-    sum += xt[i]
+mathLib.rpois = function (lambda = 1) {
+  var k = 0; p = 1; l= Math.exp(-lambda)
+  while (p > l) { 
+    k += 1
+    p = p * Math.random()
   }
-  for (let i = 0; i < n; i++) {
-    xN[i] = xt[i] / sum
-  }
-  return xN
+  return k-1
 }
-
-mathLib.toLogBarycentric = function (xN, n) {
-  var sum = 0
-  for (let i = 0; i < n; i++) {
-    sum += xN[i]
-  }
-  for (let i = 0; i < n; i++) {
-    xN[i] = Math.log(xN[i] / sum)
-  }
-  return xN
-}
-
-mathLib.rnorm = function (mu = 0, sd = 1) {
-  var val = Math.sqrt(-2.0 * Math.log(U.unif_rand())) * Math.cos(2.0 * pi * U.unif_rand())
-  return val * sd + mu
-}
-mathLib.matrix = function (Nrows) {
-  var ary = []
-  for (var i = 0; i < Nrows; i++) {
-    ary[i] = []
-  }
-  return ary
-}
-
-mathLib.numEulerSteps = function(t1, t2, dt) {
-  var DOUBLE_EPS = 10e-8
-  var tol = Math.sqrt(DOUBLE_EPS)
-  var nstep
-  // nstep will be the number of Euler steps to take in going from t1 to t2.
-  // note also that the stepsize changes.
-  // this choice is meant to be conservative
-  // (i.e., so that the actual dt does not exceed the specified dt
-  // by more than the relative tolerance 'tol')
-  // and to counteract roundoff error.
-  if (t1 >= t2) {
-    dt = 0
-    nstep = 0
-  } else if (t1 + dt >= t2) {
-    dt = t2 - t1
-    nstep = 1
-  } else {
-    nstep = Math.ceil((t2 - t1) / dt /(1 + tol))
-    dt = (t2 - t1) / nstep
-  }
-  return nstep
-}
-
-mathLib.nosortResamp = function (nw, w, np, p, offset) {
-  // np : number of particles to resample
-  for (j = 1; j < nw; j++) {
-   w[j] += w[j-1]
- }
-  if (w[nw - 1] <= 0) {
-    throw "in 'systematic_resampling': non-positive sum of weight"
-  }
-  var du = w[nw - 1] / np
-  var u = -du * U.unif_rand()
-
-  for (j = 0, i = 0; j < np; j++) {
-    u += du
-    while ((u > w[i]) && (i < nw - 1)) i++;//looking for the low weight
-    p[j] = i
-  }
-  if (offset){// add offset if needed
-    for (j = 0; j < np; j++) p[j] += offset
-  }
-}
-// mathLib.systematicResampling = function (weights)
-// {
-//   var n, perm
-
-//   n = weights.length
-//   // PROTECT(perm = NEW_INTEGER(n));
-//   // PROTECT(weights = AS_NUMERIC(weights));
-//   // GetRNGstate();
-//   mathLib.nosortResamp(n, weights, n, perm, 1)
-//   // PutRNGstate();
-//   // UNPROTECT(2);
-//   return(perm)
-// }
 module.exports = mathLib;
+
+
 

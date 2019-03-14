@@ -8,15 +8,13 @@ const {
   rng: { MersenneTwister },
   rng: { normal: { Inversion } }
 } = libR
-const mt = new MersenneTwister(0)// 
-const { rpois } = Poisson(new Inversion(mt))
-mt.init(1234)
+// const mt = new MersenneTwister(0)// 
+// const { rpois } = Poisson(new Inversion(mt))
+// mt.init(1234)
 snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   var seas, births, beta, beta0, foi, R0, tt, va
   var trans = new Array(6).fill(0)
   var rate = new Array(6) 
-  var deltaT = 14 / 365.25
-  var dt = 1 / 365.25 
   
   R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] 
   beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma
@@ -36,17 +34,16 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   rate[3] = mu// natural E death
   rate[4] = gamma// recovery
   rate[5] = mu// natural I death 
-   // if( t < 1944 && t>=1943.98631074606) console.log(t , S ,H)
+  
   births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
   mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
   mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
-  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)//;console.log(trans)
+  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)
   S += (births - trans[0] - trans[1])
   E += (trans[0] - trans[2] - trans[3]) 
   I += (trans[2] - trans[4] - trans[5]) 
   R = pop - S - E - I
   H += trans[4] 
-   // if( t<1944 && t>=1943.98631074606)  console.log(t,births, trans[0] ,trans[1], births- trans[0] -trans[1])
   return [S, E, I, R, H]
 }
 snippet.rprocessVaccine = function(t) {
@@ -137,22 +134,13 @@ snippet.rprocessVaccine = function(t) {
     vaccineRate = 0.89
   return vaccineRate
 }
-// snippet.initz = function(pop, S_0, E_0, R_0, I_0) {
-//   var m = pop / (S_0 + E_0 + R_0 + I_0),
-//     S = Math.round(m * S_0),
-//     E = Math.round(m * E_0),
-//     R = Math.round(m * R_0),
-//     I = Math.round(m * I_0),
-//     H = 0
-//   return [S, E, R, I, H]
-// }
 
-snippet.initz = function(pop, S_0, E_0, I_0, R_0) {
+snippet.initz = function(pop, S_0, E_0, I_0, R_0, H) {
   var m = pop / (S_0 + E_0 + R_0 + I_0),
     S = Math.round(m * S_0),
     E = Math.round(m * E_0),
-    R = Math.round(m * R_0),
     I = Math.round(m * I_0),
+    R = Math.round(m * R_0),
     H = 0
   return [S, E, I, R, H]
 }
@@ -188,5 +176,15 @@ snippet.rmeasure = function (H, rho, psi) {
   }
   return cases
 }
+// snippet.paramsMod = {"R0":0,"amplitude":0,"gamma":0,"mu":0,"sigma":0,"rho":0,"psi":0}
+
+// snippet.paramsIc = ["S_0","E_0","R_0","I_0"]
+
+// snippet.stateNames = ["S","E","I","R","H"]
+
+// snippet.zeroNames = ["H"]
 
 module.exports = snippet
+// snippet.paramsMod.R0 = 10
+
+// console.log(snippet.paramsMod[0])
