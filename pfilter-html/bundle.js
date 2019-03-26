@@ -130,9 +130,32 @@ mathLib.rpois = function (lambda = 1) {
   }
   return k-1
 }
+// mathLib.random = function(seed) {
+//   function _seed(s) {
+//     if ((seed = (s|0) % 2147483647) <= 0) {
+//       seed += 2147483646;
+//     }
+//   }
+
+//   function _nextInt() {
+//     return seed = seed * 48271 % 2147483647;
+//   }
+
+//   function _nextFloat() {
+//     return (_nextInt() - 1) / 2147483646;
+//   }
+
+//   _seed(seed);
+
+//   return {
+//     seed: _seed,
+//     nextInt: _nextInt,
+//     nextFloat: _nextFloat
+//   };
+// }
 module.exports = mathLib;
-
-
+// let rand = new mathLib.random(0);
+// console.log(rand.nextFloat(), Math.random())
 
 
 },{"lib-r-math.js":6,"math-erf":8}],2:[function(require,module,exports){
@@ -153,6 +176,8 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   var seas, births, beta, beta0, foi, R0, tt, va
   var trans = new Array(6).fill(0)
   var rate = new Array(6) 
+  var deltaT = 14 / 365.25
+  var dt = 1 / 365.25 
   
   R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] 
   beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma
@@ -172,11 +197,11 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   rate[3] = mu// natural E death
   rate[4] = gamma// recovery
   rate[5] = mu// natural I death 
-  
+   // if( t < 1944 && t>=1943.986310
   births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
   mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
   mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
-  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)
+  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)//;console.log(trans)
   S += (births - trans[0] - trans[1])
   E += (trans[0] - trans[2] - trans[3]) 
   I += (trans[2] - trans[4] - trans[5]) 
@@ -19145,7 +19170,7 @@ function pfilterCalculation (input) {//filter.traj , save.params
     var lik = new Array(Np)
     var weights = [], normalWeights = []
   
-    //****************************************PARTICLE LOOP**************************************//
+    //****************************************PARTICLE LOOP**************************************
     for (np = 0; np < Np; np++){ //calc for each particle
       var trans = new Array(6).fill(0)
       var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
@@ -19281,6 +19306,8 @@ function pfilterCalculation (input) {//filter.traj , save.params
     }
   }//endTime
   console.log('loglike=',loglik)
+  console.log('runing time=', new Date() - START)
+  activateDownload ()
    if (input.runPredMean) {
     return predictionMean
   }
@@ -19296,7 +19323,7 @@ function pfilterCalculation (input) {//filter.traj , save.params
   if (input.runSaveStates){
     return stateSaved
   }
-  console.log('runing time=', new Date() - START)
+
 }
 
 module.exports = {

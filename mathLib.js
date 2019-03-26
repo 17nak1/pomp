@@ -129,7 +129,30 @@ mathLib.rpois = function (lambda = 1) {
   }
   return k-1
 }
+// mathLib.random = function(seed) {
+//   function _seed(s) {
+//     if ((seed = (s|0) % 2147483647) <= 0) {
+//       seed += 2147483646;
+//     }
+//   }
+
+//   function _nextInt() {
+//     return seed = seed * 48271 % 2147483647;
+//   }
+
+//   function _nextFloat() {
+//     return (_nextInt() - 1) / 2147483646;
+//   }
+
+//   _seed(seed);
+
+//   return {
+//     seed: _seed,
+//     nextInt: _nextInt,
+//     nextFloat: _nextFloat
+//   };
+// }
 module.exports = mathLib;
-
-
+// let rand = new mathLib.random(0);
+// console.log(rand.nextFloat(), Math.random())
 

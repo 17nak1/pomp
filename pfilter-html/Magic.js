@@ -91,12 +91,13 @@ function start () {
       // var tem = inputArr[9]
       // inputArr[9] = inputArr[10]
       // inputArr[10] = tem
-      res.push(pfilterCalculation({params:inputArr, Np:50,times:times, dt:1 / 365.25,runPredMean:1,  dataCases:dataCases, interpolPop:interpolPopulation, interpolBirth:interpolBirth}))
+      res.push(pfilterCalculation({params:inputArr, Np:100,times:times, dt:1 / 365.25,runPredMean:1,  dataCases:dataCases, interpolPop:interpolPopulation, interpolBirth:interpolBirth}))
         
       console.log(res)
       res.splice(0, 0, ['S', 'E', 'I', 'R', 'H'])
     }, 0)
   }
+  
   downloadButton.onclick = function () {
     Csv()
   }
@@ -104,10 +105,17 @@ function start () {
 
 function Csv () {
   var csv = ''
-  res.forEach(function (row) {
+  
+  // Labels row
+  csv += res[0].join(',')
+  csv += '\n'
+
+  // Data rows
+  res[1].forEach(function (row) {
     csv += row.join(',')
     csv += '\n'
   })
+
   var hiddenElement = document.createElement('a')
 
   hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv)

@@ -15,6 +15,8 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   var seas, births, beta, beta0, foi, R0, tt, va
   var trans = new Array(6).fill(0)
   var rate = new Array(6) 
+  var deltaT = 14 / 365.25
+  var dt = 1 / 365.25 
   
   R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] 
   beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma
@@ -34,11 +36,11 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   rate[3] = mu// natural E death
   rate[4] = gamma// recovery
   rate[5] = mu// natural I death 
-  
+   // if( t < 1944 && t>=1943.986310
   births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
   mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
   mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
-  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)
+  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)//;console.log(trans)
   S += (births - trans[0] - trans[1])
   E += (trans[0] - trans[2] - trans[3]) 
   I += (trans[2] - trans[4] - trans[5]) 

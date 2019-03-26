@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>pfilter</title>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+  <link rel="stylesheet" type="text/css" href="./styles.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/2.0.0/handsontable.min.css">
+  <script src="./bundle.js"></script>
+  <script src="./Magic.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+  <link rel="stylesheet" type="text/css" href="./styles.css">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+</head>
+<body onload="start()">
+  <div id="banner">
+    <div class="authors">
+      <h1 id="header">Particle Filtering</h1>
+    </div>
+    <hr>
+  </div>
+  <div id="spacer" style="margin-top: 130px"></div>   
+</div>
+  <br>
+  <section id="setup">
+    <div id="setup">
+      <div id="table">
+        <table id="table">
+          <caption><h2> Model Snippet</h2></caption>
+           <tr>
+            <td>Model parameters' name</td>
+            <td> <input id= valInp style="width:145px;"type="text" value= 'R0, amplitude, gamma, mu, sigma, rho, psi' </td>
+          </tr>
+          <tr>
+            <td class="variable"> Initial condition parameters' names</td>
+            <td > <input id= valInp type="text" style="width:145px" value = 'S_0, E_0, I_0, R_0'</td>
+          </tr>
+          <tr>
+            <td  title = 'Model parameters and initial condition parametrs'> All parameters' value</td>
+            <td>
+              <input id= valInp style="width:145px;"type="file" >
+            </td>
+          </tr>
+          <tr>
+            <td class="variable"> States names & Zero name(s)</td>
+            <td ><input id= valInp style="width:145px;"type="text" value=' S, E, I, R & H'</td>
+          </tr>
+          <tr>
+            <td class="variable"> delta.t in the Euler simulation</td>
+            <td ><input id= valInp style="width:145px;"type="number" value="0.00273972602"</td>
+          </tr>
+        </table>
+      
+        <br>
+        <table id="table">
+          <caption> <h1>pfilter</h1></caption>
+          <tr>
+            <td title="Integer; number of particles to use. " class = "variable"> Np</td>
+            <td>
+              <input id= valInp style="width:145px;"type="number" value="10">
+            </td>
+          </tr>
+          <tr>
+            <td title = 'Positive numeric scalar; particles with log likelihood below "tol" are considered to be lost.' class="variable"> tol </td>
+            <td>
+              <input id= valInp style="width:145px;"type="number"  value="1e-17"> 
+            </td>
+          </tr>
+          <tr>
+            <td title = 'Integer; the maximum number of filtering failures allowed. 'class="variable"> max.fail</td>
+            <td>
+              <input id= valInp style="width:145px;"type="number" value="6.469830e-04">
+            </td>
+          </tr>
+          <tr> 
+            <td title = 'logical; if True, the prediction means are calculated for the state variables and parameters.' class="variable">pred.mean</td>
+            <td>
+              <input id= valInp style="width:145px;"type="text" value="True">
+            </td>
+          </tr>
+          <tr>
+            <td title = 'Logical; if True, the prediction variances are calculated for the state variables and parameters.'class="variable">pred.var</td>
+            <td>
+              <input id= valInp style="width:145px;"type="text" value="False"> 
+            </td>
+          </tr>
+          <tr>
+            <td title = 'Logical; if True, the filtering means are calculated for the state variables and parameters.' class="variable"> filter.mean</td>
+            <td>
+              <input id= valInp style="width:145px;"type="text" value="False">
+            </td>
+          </tr> 
+          <tr>
+            <td title = 'Logical; if True, the state-vector for each particle is saved and returned.' class="variable">save.states</td>
+            <td>
+              <input id= valInp style="width:145px;"type="text" value="False">
+            </td>
+          </tr>            
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="step">
+    <div>
+      <label id = "label-file1" for="file1-upload" class="custom-button" style="background-color:#2ed573">
+      Upload data covariance
+      </label>
+      <input id="file1-upload" type="file" style="display:none;">
+    </div>
+    <div>
+      <label id = "label-file2" for="file2-upload" class="custom-button" style="background-color:#2ed573">
+      Upload data cases
+      </label>
+      <input id="file2-upload" type="file" style="display:none;">
+    </div>
+  </section>
+  <section id="step">
+    <div >
+      <button id="calc">Compute</button>
+      <button id="download" style="background-color:#D3D3D3 " disabled="true">Download Results</button> 
+    </div>
+  </section>
+</body>
+</html>
