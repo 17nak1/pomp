@@ -26,7 +26,7 @@ let snippet = require('./modelSnippet.js')
 var linearInterpolator = require('linear-interpolator/node_main')
 
 //////////////////////////////////////////data///////////////////////////////////////
-<<<<<<< HEAD
+
 var LondonBidata = [], LondonCovar = []
 var rate = new Array(6) 
 // var params = [2.447358e+01,  3.420344e-01,  7.305000e+01,  4.160632e-04,  4.566000e+01 , 6.074062e-01 , 2.181604e-01 , 1.033958e-02 ,9.839982e-05,5.627462e-08  ,9.895620e-01 ]
@@ -113,95 +113,6 @@ for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k +=
       st = st.toFixed(10)
       var simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], interpolPop(st), interpolBirth(st))
       S = simulateValue[0]; E = simulateValue[1], I = simulateValue[2], R = simulateValue[3], H = simulateValue[4]
-=======
-// var LondonBidata = [], LondonCovar = []
-// var rate = new Array(6) 
-// // var params = [3.165652e+01 , 3.887624e-01 , 7.305000e+01 , 1.698730e-02  ,4.566000e+01,  4.813669e-01  ,1.963092e-01 , 2.831066e-03 ,3.476483e-04 ,  2.109135e-08,9.968213e-01]
-// var params = [3.132490e+01 , 3.883620e-01 , 7.305000e+01 , 6.469830e-04 , 4.566000e+01 , 4.598709e-01 , 1.462546e-01 , 3.399189e-02 ,2.336327e-04 ,4.221789e-07 ,9.657741e-01 ]
-// var times =[1940, 1944], maxFail = Infinity
-// var Np = 100
-// var nvars 
-// var toler = 1e-17
-
-// const anonymous = function(){ return -1 }
-
-// //* 1st data set
-// var London_covar = fs.readFileSync('./London_covar.csv').toString()
-// var lines = London_covar.split('\n')
-// for (let i = 1; i < lines.length; i++) {
-//   LondonCovar.push(lines[i].split(','))
-// }
-// var dataCovar = [LondonCovar][0]
-// //* 2nd data set
-// var London_BiData = fs.readFileSync('./London_BiData1.csv').toString()
-// var lines = London_BiData.split('\n')
-// for (let i = 1; i < lines.length; i++) {
-//   LondonBidata.push(lines[i].split(','))
-// }
-// var dataCases = [LondonBidata][0]
-
-// var d1 = []// read time and population from 1st data and make interpolation function
-// var d2 = []// read time and birthrate from 1st data and make interpolation function
-// for (let i = 0; i < dataCovar.length - 1; i++) {
-//   d1.push([Number(dataCovar[i][0]), Number(dataCovar[i][1])])
-//   d2.push([Number(dataCovar[i][0]), Number(dataCovar[i][2])])
-// }
-// var interpolPop = linearInterpolator(d1)
-// var interpolBirth = linearInterpolator(d2)
-// var dt = 1 / 365.25
-//////////////////////////////////////////////////////////////////////////////////////* main function//////////////////////////////////////////////////////////////////////
-function pfilterCalculation (input) {//filter.traj , save.params
-  // {params:inputArr, Np:100,times:times, dt:1 / 365.25,runPredMean:1,  dataCases:dataCases, interpolPop:interpolPopulation, interpolBirth:interpolBirth}
-  let START =new Date()
-  let defaults = {params:-1, Np:-1, tol:1e-17, maxFail:Infinity, runPredMean:0, runPredVar:0, runFilterMean:0, runSaveStates:0, times:-1, dt:-1,
-                   dataCases:0}
-  for(let prop in defaults) {
-    if(typeof input[prop] == 'undefined') {
-      input[prop] = defaults[prop]
-    }
-  }
-  if (input.params === -1 || input.Np === -1 || input.times === -1 || input.dt === -1) {
-    throw 'Some required arguments are missed'
-  }
-  var toler = 1e-17
-  var params = input.params
-  var Np = input.Np
-  var tole = input.tol
-  var maxFail = input.maxFail
-  var dt = input.dt
-  var dataCases = input.dataCases
-  var interpolPop = input.interpolPop
-  var interpolBirth = input.interpolBirth
-  
-  var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, I_0, R_0] = params
-  var paramsIC = [S_0, E_0, I_0, R_0, H = 0]
-  var [t0, tdata] = input.times
-  var nvars = paramsIC.length
-  var deltaT = 14 / 365.25
-  var pop , birthrate
-  var timeLen = dataCases.length 
-  var va = 0, seas
-  var particles = [], state =[]
-  var nlost = 0
-  var sampleNum = new Array(Np)
-  var doPredictionVariance = 1, doPredictionMean = 1, doFilterMean = 1 , allFail = 0
-  var predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
-  var predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
-  var condLoglik = Array(timeLen).fill(null).map(() => Array(1))
-  var filterMean = Array(timeLen).fill(null).map(() => Array(nvars))
-  var timeCountData = 0, ws = 0, vsq, sumsq, ess, loglik = 0, lik //condLoglik = []
-  var stateSaved =[]
-  var states = Array(Np).fill(null).map(() => Array(nvars))
-  state = snippet.initz(interpolPop (t0), S_0, E_0, I_0, R_0)
-  // First Np sets
-  for ( i=0; i < Np; i++){
-    particles[i] = [].concat(state)
-  }
-  // time loop
-  for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
-    if ( k > tdata - deltaT && k <= tdata) {
-      k = tdata
->>>>>>> 1c681c501fc4b91e0905f045f765b1fa5eadbbc6
     }
     var lik = new Array(Np)
     var weights = [], normalWeights = []
