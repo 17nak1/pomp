@@ -240,46 +240,45 @@ csvWriter.writeRecords(predictionMean)
   console.log('...predictionMean')
 })
 
-const createCsvWriter11 = require('csv-writer').createArrayCsvWriter;
-const csvWriter11 = createCsvWriter11({
-  header: ['S', 'E', 'I', 'R', 'H'],
-  path: './predvar.csv'
-})
- 
-csvWriter11.writeRecords(predictionVariance)
-  .then(() => {
-  console.log('...predictionVar')
-})
+// const createCsvWriter11 = require('csv-writer').createArrayCsvWriter;
+// const csvWriter11 = createCsvWriter11({
+//   header: ['S', 'E', 'I', 'R', 'H'],
+//   path: './predvar.csv'
+// })
+// csvWriter11.writeRecords(predictionVariance)
+//   .then(() => {
+//   console.log('...predictionVar')
+// })
 
-var createCsvWriter1 = require('csv-writer').createArrayCsvWriter;
-var csvWriter1 = createCsvWriter1({
-  header: ['S', 'E', 'I', 'R', 'H'],
-  path: './filterMean.csv'
-})
-csvWriter1.writeRecords(filterMean)
-  .then(() => {
-  console.log('...filterMean')
-})
+// var createCsvWriter1 = require('csv-writer').createArrayCsvWriter;
+// var csvWriter1 = createCsvWriter1({
+//   header: ['S', 'E', 'I', 'R', 'H'],
+//   path: './filterMean.csv'
+// })
+// csvWriter1.writeRecords(filterMean)
+//   .then(() => {
+//   console.log('...filterMean')
+// })
 
-var createCsvWriter2 = require('csv-writer').createArrayCsvWriter;
-var csvWriter2 = createCsvWriter2({
-  header: [],
-  path: './condLogliklihood.csv'
-}) 
-csvWriter2.writeRecords(condLoglik)
-  .then(() => {
-  console.log('...condLoglik')
-})
+// var createCsvWriter2 = require('csv-writer').createArrayCsvWriter;
+// var csvWriter2 = createCsvWriter2({
+//   header: [],
+//   path: './condLogliklihood.csv'
+// }) 
+// csvWriter2.writeRecords(condLoglik)
+//   .then(() => {
+//   console.log('...condLoglik')
+// })
 
-var createCsvWriter3 = require('csv-writer').createArrayCsvWriter;
-var csvWriter3 = createCsvWriter3({
-  header:['S', 'E', 'I', 'R', 'H'],
-  path: './stateSaved.csv'
-})
-csvWriter3.writeRecords(stateSaved)
-  .then(() => {
-  console.log('...stateSaved')
-})
+// var createCsvWriter3 = require('csv-writer').createArrayCsvWriter;
+// var csvWriter3 = createCsvWriter3({
+//   header:['S', 'E', 'I', 'R', 'H'],
+//   path: './stateSaved.csv'
+// })
+// csvWriter3.writeRecords(stateSaved)
+//   .then(() => {
+//   console.log('...stateSaved')
+// })
   
 console.log('running time:',new Date() - START)
 
