@@ -31,7 +31,7 @@ var rate = new Array(6)
 // var params = [2.447358e+01,  3.420344e-01,  7.305000e+01,  4.160632e-04,  4.566000e+01 , 6.074062e-01 , 2.181604e-01 , 1.033958e-02 ,9.839982e-05,5.627462e-08  ,9.895620e-01 ]
 var params = [3.132490e+01, 3.883620e-01, 7.305000e+01, 6.469830e-04, 4.566000e+01, 4.598709e-01, 1.462546e-01, 3.399189e-02, 2.336327e-04, 4.221789e-07, 9.657741e-01 ]
 var times =[1940, 1944], maxFail = Infinity
-var Np = 10
+var Np = 100
 var nvars 
 var toler = 1e-17
 
@@ -84,11 +84,11 @@ var stateSaved =[]
 var states = Array(Np).fill(null).map(() => Array(nvars))
 state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
 // First Np sets
-for ( i=0; i < Np; i++){
-  particles[i] = [].concat(state)
-}
-// time loop
-for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
+particles = new Array(Np).fill(null).map(() => [].concat(state))
+
+
+// Main loop
+for (k = t0; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
   if ( k > tdata - deltaT && k <= tdata) {
     k = tdata
   }
