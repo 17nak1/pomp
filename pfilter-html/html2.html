@@ -23,100 +23,125 @@
   <br>
   <section id="setup">
     <div id="setup">
-      <div id="table">
-        <table id="table">
-          <caption><h2> Model Snippet</h2></caption>
-           <tr>
-            <td>Model parameters' name</td>
-            <td> <input id= valInp style="width:145px;"type="text" value= 'R0, amplitude, gamma, mu, sigma, rho, psi' </td>
-          </tr>
-          <tr>
-            <td class="variable"> Initial condition parameters' names</td>
-            <td > <input id= valInp type="text" style="width:145px" value = 'S_0, E_0, I_0, R_0'</td>
-          </tr>
-          <tr>
-            <td  title = 'Model parameters and initial condition parametrs'> All parameters' value</td>
-            <td>
-              <input id= valInp style="width:145px;"type="file" >
-            </td>
-          </tr>
-          <tr>
-            <td class="variable"> States names & Zero name(s)</td>
-            <td ><input id= valInp style="width:145px;"type="text" value=' S, E, I, R & H'</td>
-          </tr>
-          <tr>
-            <td class="variable"> delta.t in the Euler simulation</td>
-            <td ><input id= valInp style="width:145px;"type="number" value="0.00273972602"</td>
-          </tr>
-        </table>
-      
+      <button style="background-color:#deeaee;width: 100%" class="accordion">Model Snippet</button>
+        <div class="panel">
+          <div id="table">
+            <table id="table">
+               <tr>
+                <td >Model parameters' name</td>
+                <td > <textarea id="Text1" style="width: 100%;border: 0">'R0, amplitude, gamma, mu, sigma, rho, psi'</textarea> </td>
+                <!-- <td width="300px"> <input id= valInp style="width:280px ;border: 0" type="text" value= 'R0, amplitude, gamma, mu, sigma, rho, psi' </td> -->
+              </tr>
+              <tr>
+                <td class="variable"> Initial condition parameters' names</td>
+                <td > <input id= valInp style= "width:100%;border: 0" type="text"  value = 'S_0, E_0, I_0, R_0'</td>
+              </tr>
+              <tr>
+                <td class="variable"> States names</td>
+                <td ><input id= valInp style="width:100%;border: 0" type="text" value=' S, E, I, R , H'</td>
+              </tr>
+              <tr>
+                <td class="variable"> Zero name(s)</td>
+                <td ><input id= valInp style="width:100%;border: 0" type="text" value='H'</td>
+              </tr>
+              <tr>
+                <td class="variable"> delta.t in the Euler simulation</td>
+                <td ><input id= valInp style="width:100%;border: 0" type="number" value="0.00273972602"</td>
+              </tr>
+            </table>
+          </div>
+        </div>
         <br>
-        <table id="table">
-          <caption> <h1>pfilter</h1></caption>
-          <tr>
-            <td title="Integer; number of particles to use. " class = "variable"> Np</td>
-            <td>
-              <input id= valInp style="width:145px;"type="number" value="10">
-            </td>
-          </tr>
-          <tr>
-            <td title = 'Positive numeric scalar; particles with log likelihood below "tol" are considered to be lost.' class="variable"> tol </td>
-            <td>
-              <input id= valInp style="width:145px;"type="number"  value="1e-17"> 
-            </td>
-          </tr>
-          <tr>
-            <td title = 'Integer; the maximum number of filtering failures allowed. 'class="variable"> max.fail</td>
-            <td>
-              <input id= valInp style="width:145px;"type="number" value="6.469830e-04">
-            </td>
-          </tr>
-          <tr> 
-            <td title = 'logical; if True, the prediction means are calculated for the state variables and parameters.' class="variable">pred.mean</td>
-            <td>
-              <input id= valInp style="width:145px;"type="text" value="True">
-            </td>
-          </tr>
-          <tr>
-            <td title = 'Logical; if True, the prediction variances are calculated for the state variables and parameters.'class="variable">pred.var</td>
-            <td>
-              <input id= valInp style="width:145px;"type="text" value="False"> 
-            </td>
-          </tr>
-          <tr>
-            <td title = 'Logical; if True, the filtering means are calculated for the state variables and parameters.' class="variable"> filter.mean</td>
-            <td>
-              <input id= valInp style="width:145px;"type="text" value="False">
-            </td>
-          </tr> 
-          <tr>
-            <td title = 'Logical; if True, the state-vector for each particle is saved and returned.' class="variable">save.states</td>
-            <td>
-              <input id= valInp style="width:145px;"type="text" value="False">
-            </td>
-          </tr>            
-        </table>
+        <button style="background-color:#b1cbbb" class="accordion">Particle Filter</button>
+          <div class="panel">
+            <div id="table">
+              <table id="table">
+                <tr>
+                  <td  title="Integer; number of particles to use. " class = "variable"> Number of particles</td>
+                  <td >
+                    <input id= valInp style="width:100px; border: 0; text-align: center;" type="number" value="10">
+                  </td>
+                </tr>
+                <tr>
+                  <td title = 'Positive numeric scalar; particles with log likelihood below "tol" are considered to be lost.' class="variable"> tolarence </td>
+                  <td>
+                    <input id= valInp style="width:100px; border: 0; text-align: center;" type="number"  value="1e-17"> 
+                  </td>
+                </tr>
+                <tr>
+                  <td title = 'Integer; the maximum number of filtering failures allowed. 'class="variable"> max.fail</td>
+                  <td>
+                    <input id= valInp style="width:100px; border: 0; text-align: center;" type="number" value="300">
+                  </td>
+                </tr>
+                <tr> 
+                  <td title = 'logical; if true, the prediction means are calculated for the state variables and parameters.' class="variable">prediction mean</td>
+                  <td>
+                    <label class="switch"> 
+                      <input type="checkbox">
+                      <span class="slider round"></span>
+                    </label>
+                  </td>
+                </tr>
+                <tr>
+                  <td title = 'Logical; if true, the prediction variances are calculated for the state variables and parameters.'class="variable">prediction variance</td>
+                  <td>
+                    <label class="switch"> 
+                      <input type="checkbox">
+                      <span class="slider round"></span>
+                    </label>
+                  </td>
+                </tr>
+                <tr>
+                  <td title = 'Logical; if true, the filtering means are calculated for the state variables and parameters.' class="variable"> filter mean</td>
+                  <td>
+                    <label class="switch"> 
+                      <input type="checkbox">
+                      <span class="slider round"></span>
+                    </label>
+                  </td>
+                </tr> 
+                <tr>
+                  <td title = 'Logical; if true, the state-vector for each particle is saved and returned.' class="variable">save states</td>
+                  <td>
+                 <label class="switch"> 
+                   <input type="checkbox">
+                   <span class="slider round"></span>
+                 </label>
+                </td>
+                </tr>           
+              </table>
+          </div>
+        </div>
+        <button style="background-color:#eea29a" class="accordion">Upload data</button>
+      <div class="panel" >
+        <section id="upload">
+          <div id= "upload">
+            <label id = "label-file1" for="file1-upload" >
+            Initial parameters
+            </label>
+            <input  id="file1-upload" type="file" >
+          </div>
+          <div id= "upload">
+            <label id = "label-file1" for="file1-upload" >
+            Data covariates
+            </label>
+            <input id="file1-upload" type="file" >
+          </div>
+          <div id= "upload">
+            <label id = "label-file2" for="file2-upload"  >
+            Data cases
+            </label>
+            <input id="file2-upload" type="file" >
+          </div>
+        </section>
       </div>
     </div>
   </section>
 
   <section id="step">
-    <div>
-      <label id = "label-file1" for="file1-upload" class="custom-button" style="background-color:#2ed573">
-      Upload data covariance
-      </label>
-      <input id="file1-upload" type="file" style="display:none;">
-    </div>
-    <div>
-      <label id = "label-file2" for="file2-upload" class="custom-button" style="background-color:#2ed573">
-      Upload data cases
-      </label>
-      <input id="file2-upload" type="file" style="display:none;">
-    </div>
-  </section>
-  <section id="step">
     <div >
-      <button id="calc">Compute</button>
+      <button  class = "custom-button" style="margin: 0 20px 0 20px;background-color: #f7786b" id="calc">Compute</button>
       <button id="download" style="background-color:#D3D3D3 " disabled="true">Download Results</button> 
     </div>
   </section>

@@ -22,18 +22,31 @@ section#setup {
   align-items: center;
 }
 section#upload {
-  /*display: flex;*/
-  justify-content: center;
-  align-items: center;
+  display: flex;
+  /*justify-content: center;
+  align-items: center;*/
+  width: 100%;
+  margin: 20px 0% 4px 0%;
 }
 
 section#setup div {
   display: inline-block;
+  width: 80%;
 }
 
-div#table table {
+table#table {
   min-width: 450px;
   border-collapse: collapse;
+  table-layout: fixed;
+  width: 70%;
+  margin: 1px 10% 1px 10%;
+}
+table#table , table#th, table#td{
+  border: 1px solid black;
+}
+div#table{
+  margin: 4px 10% 4px 10%;
+  padding: 4px 4px;
 }
 div#table table, div#table th, div#table td {
   border: 1px solid #a4b0be;
@@ -81,9 +94,9 @@ section#step {
 div#step {
   display: inline-block;
 }
-div#button {
+/*div#button {
   margin: 0 20px 0 20px;
-}
+}*/
 div#data {
   width: calc(100% - 612px);
 }
@@ -141,7 +154,7 @@ hr {
   border-top: 1px solid #a4b0be;
 }
 
-button{
+/*button{
   -webkit-appearance: none;
   box-shadow: none;
   border-style: none;
@@ -153,7 +166,7 @@ button{
   font-weight: bold;
   background-color: #2ed573;
   cursor: pointer;
-}
+}*/
 button:hover {
   background-color: #7bed9f;
 }
@@ -172,7 +185,7 @@ input::-webkit-inner-spin-button {
   margin-right: 20px;
   padding: 4px;
   cursor: pointer;
-  width: 190px;
+  width: 150px;
   border-style: none;
   box-shadow: none;
   border-style: none;
@@ -183,7 +196,7 @@ input::-webkit-inner-spin-button {
   background-color: #D3D3D3;
     }
 
-/** stuff added by Conrad Bielicki June 5th 2018 **/
+
 .authors, .date{
   display: block;
   width: 800px;
@@ -193,7 +206,7 @@ input::-webkit-inner-spin-button {
   /*margin: 5px 0px;*/
   font-weight: normal;
 }
-p{
+/*p{
   text-align: justify;
   max-width: 800px;
   margin: auto;
@@ -204,24 +217,112 @@ p.equation{
   text-align:left;
   margin-left: 7%;
   margin-bottom: 15px;
-}
+}*/
 #header{
   margin-bottom: 0px;
 }
 .variable{
   font-style: italic;
 }
+
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
-input[type='radio']{
+#input{
   margin-right: 10px ;
   margin-left: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 h3#answer{
   text-align: center;
   margin-left:10px;
 }
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
 
+.active, .accordion:hover {
+  background-color: #ccc;
+}
 
+.panel {
+  padding: 10 10px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  margin: 1px 10% 1px 10%;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 6px;
+  left: 1px;
+  right: 1px;
+  bottom: 5px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 10px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #66997a;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
 

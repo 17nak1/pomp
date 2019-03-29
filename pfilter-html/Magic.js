@@ -18,7 +18,7 @@ function start () {
   }
   document.getElementById('file1-upload').onchange = function () {
     document.getElementById('label-file1').innerHTML = 'Uploaded'
-    document.getElementById('label-file1').style.backgroundColor = '#ffbf00'
+    // document.getElementById('label-file1').style.backgroundColor = '#ffbf00'
     var file = this.files[0]
     dataCovar = []
     var reader = new FileReader()
@@ -37,7 +37,7 @@ function start () {
   }
   document.getElementById('file2-upload').onchange = function () {
     document.getElementById('label-file2').innerHTML = 'Uploaded'
-    document.getElementById('label-file2').style.backgroundColor = '#ffbf00'
+    // document.getElementById('label-file2').style.backgroundColor = '#ffbf00'
     var file = this.files[0]
     dataCases = []
     var reader = new FileReader ()
@@ -96,6 +96,19 @@ function start () {
       console.log(res)
       res.splice(0, 0, ['S', 'E', 'I', 'R', 'H'])
     }, 0)
+  }
+  var acc = document.getElementsByClassName("accordion")
+
+  for (i = 0; i < acc.length; i++) {
+    acc[i].addEventListener("click", function() {
+      this.classList.toggle("active")
+      var panel = this.nextElementSibling
+      if (panel.style.maxHeight){
+        panel.style.maxHeight = null;
+      } else {
+        panel.style.maxHeight = panel.scrollHeight + "px"
+      } 
+    })
   }
   
   downloadButton.onclick = function () {
