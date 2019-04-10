@@ -24,7 +24,7 @@ for (let i = 1; i < lines.length; i++) {
 }
 var dataCovar = [LondonCovar][0]
 //* 2nd data set
-var London_BiData = fs.readFileSync('./London_BiDataMain.csv').toString()
+var London_BiData = fs.readFileSync('./London_BiData.csv').toString()
 var lines = London_BiData.split('\n')
 for (let i = 1; i < lines.length; i++) {
   LondonBidata.push(lines[i].split(','))
