@@ -37,7 +37,7 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   rate[4] = gamma// recovery
   rate[5] = mu// natural I death 
    
-  births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
+  births = Math.random()//mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
   mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
   mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
   mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)
