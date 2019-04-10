@@ -1,23 +1,4 @@
-/*
- * Particle filter
- * A plain vanilla sequential Monte Carlo (particle filter) algorithm.
- * Resampling is performed at each observation.
- * @param Np the number of particles to use.
- * @param tol positive numeric scalar.
- * @param max.fail integer; the maximum number of filtering failures allowed.
- * @param pred.mean logical; if \code{TRUE}, the prediction means are calculated for the state variables and parameters.
- * @param pred.var logical; if \code{TRUE}, the prediction variances are calculated for the state variables and parameters.
- * @param filter.mean logical; if \code{TRUE}, the filtering means are calculated for the state variables and parameters.
- * @param filter.traj logical; if \code{TRUE}, a filtered trajectory is returned for the state variables and parameters.
- * @param save.states logical.
- *  If \code{save.states=TRUE}, the state-vector for each particle at each time is saved.
- * @references
-    pfilter.R by Aaron A. King. https://github.com/kingaa/pomp/blob/abc552b335319bd36b21d3313305c89e97f48f68/R/pfilter.R
-    M. S. Arulampalam, S. Maskell, N. Gordon, & T. Clapp.
-    A Tutorial on Particle Filters for Online Nonlinear, Non-Gaussian Bayesian Tracking.
-    IEEE Trans. Sig. Proc. 50:174--188, 2002.
- */
-//conditional log liklihood(time) =log(sum(w_i, i in 0:Np) / Np)
+
 
 fs = require('fs')
 let fmin = require ('fmin')
@@ -28,7 +9,6 @@ var linearInterpolator = require('linear-interpolator/node_main')
 //////////////////////////////////////////data///////////////////////////////////////
 var LondonBidata = [], LondonCovar = []
 var rate = new Array(6) 
-// var params = [2.447358e+01,  3.420344e-01,  7.305000e+01,  4.160632e-04,  4.566000e+01 , 6.074062e-01 , 2.181604e-01 , 1.033958e-02 ,9.839982e-05,5.627462e-08  ,9.895620e-01 ]
 var params = [3.132490e+01, 3.883620e-01, 7.305000e+01, 6.469830e-04, 4.566000e+01, 4.598709e-01, 1.462546e-01, 3.399189e-02, 2.336327e-04, 4.221789e-07, 9.657741e-01 ]
 var times =[1940, 1944], maxFail = Infinity
 var Np = 10
@@ -44,7 +24,7 @@ for (let i = 1; i < lines.length; i++) {
 }
 var dataCovar = [LondonCovar][0]
 //* 2nd data set
-var London_BiData = fs.readFileSync('./London_BiData.csv').toString()
+var London_BiData = fs.readFileSync('./London_BiDataMain.csv').toString()
 var lines = London_BiData.split('\n')
 for (let i = 1; i < lines.length; i++) {
   LondonBidata.push(lines[i].split(','))
@@ -60,7 +40,7 @@ for (let i = 0; i < dataCovar.length - 1; i++) {
 var interpolPop = linearInterpolator(d1)
 var interpolBirth = linearInterpolator(d2)
 var START = new Date()
-//////////////////////////////////////////////////////////////////////////////////////* main function//////////////////////////////////////////////////////////////////////
+
 
 var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, I_0, R_0] = params
 var paramsIC = [S_0, E_0, I_0, R_0, H = 0]
@@ -87,15 +67,15 @@ state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
 particles = new Array(Np).fill(null).map(() => [].concat(state))
 
 
-// Main loop
-for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
+// Time loop
+for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += deltaT){
   if ( k > tdata - deltaT && k <= tdata) {
     k = tdata
   }
   var lik = new Array(Np)
   var weights = [], normalWeights = []
 
-  //****************************************PARTICLE LOOP**************************************////////////////////////////////////////////////////////////////////////////
+  //**PARTICLE LOOP
   for (np = 0; np < Np; np++){ //calc for each particle
     var trans = new Array(6).fill(0)
     var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
@@ -133,7 +113,8 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
       weights.push(likvalue)
       particles[np][4] = 0
     }
-  }////////////////////////////////////////////////////////////////end particle loop///////////////////////////////////////////////////////////////////////////////////////
+  }//  end particle loop
+  
   //normalize
   if (k >= Number(dataCases[0][0])){
     let sumOfWeights = 0
