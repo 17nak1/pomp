@@ -41,9 +41,6 @@ mathLib.numEulerSteps = function(t1, t2, dt) {
   var DOUBLE_EPS = 10e-8
   var tol = Math.sqrt(DOUBLE_EPS)
   var nstep
-  // nstep will be the number of Euler steps to take in going from t1 to t2, note also that the stepsize changes.
-  // this choice is meant to be conservative (i.e., so that the actual dt does not exceed the specified dt
-  // by more than the relative tolerance 'tol') and to counteract roundoff error.
   if (t1 >= t2) {
     dt = 0
     nstep = 0
@@ -129,30 +126,7 @@ mathLib.rpois = function (lambda = 1) {
   }
   return k-1
 }
-// mathLib.random = function(seed) {
-//   function _seed(s) {
-//     if ((seed = (s|0) % 2147483647) <= 0) {
-//       seed += 2147483646;
-//     }
-//   }
 
-//   function _nextInt() {
-//     return seed = seed * 48271 % 2147483647;
-//   }
-
-//   function _nextFloat() {
-//     return (_nextInt() - 1) / 2147483646;
-//   }
-
-//   _seed(seed);
-
-//   return {
-//     seed: _seed,
-//     nextInt: _nextInt,
-//     nextFloat: _nextFloat
-//   };
-// }
 module.exports = mathLib;
-// let rand = new mathLib.random(0);
-// console.log(rand.nextFloat(), Math.random())
+
 
