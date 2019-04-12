@@ -10,7 +10,7 @@ let simulator = require ('./simulator.js')
 let dataCases = [], dataCovar = []
 let params = [3.132490e+01, 3.883620e-01, 7.305000e+01, 6.469830e-04, 4.566000e+01, 4.598709e-01, 1.462546e-01, 3.399189e-02, 2.336327e-04, 4.221789e-07, 9.657741e-01 ]
 let maxFail = Infinity
-let Np = 10
+let Np = 1000
 console.log("Np",Np)
 let toler = 1e-17
 
