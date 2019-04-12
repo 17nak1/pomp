@@ -41,9 +41,6 @@ mathLib.numEulerSteps = function(t1, t2, dt) {
   var DOUBLE_EPS = 10e-8
   var tol = Math.sqrt(DOUBLE_EPS)
   var nstep
-  // nstep will be the number of Euler steps to take in going from t1 to t2, note also that the stepsize changes.
-  // this choice is meant to be conservative (i.e., so that the actual dt does not exceed the specified dt
-  // by more than the relative tolerance 'tol') and to counteract roundoff error.
   if (t1 >= t2) {
     dt = 0
     nstep = 0
@@ -129,30 +126,57 @@ mathLib.rpois = function (lambda = 1) {
   }
   return k-1
 }
-// mathLib.random = function(seed) {
-//   function _seed(s) {
-//     if ((seed = (s|0) % 2147483647) <= 0) {
-//       seed += 2147483646;
-//     }
-//   }
 
-//   function _nextInt() {
-//     return seed = seed * 48271 % 2147483647;
-//   }
+mathLib.interpolator = function (points) {
+  var first, n = points.length - 1,
+    interpolated,
+    leftExtrapolated,
+    rightExtrapolated;
 
-//   function _nextFloat() {
-//     return (_nextInt() - 1) / 2147483646;
-//   }
+  if (points.length === 0) {
+    return function () {
+      return 0
+    }
+  }
 
-//   _seed(seed);
+  if (points.length === 1) {
+    return function () {
+      return points[0][1]
+    }
+  }
 
-//   return {
-//     seed: _seed,
-//     nextInt: _nextInt,
-//     nextFloat: _nextFloat
-//   };
-// }
+  points = points.sort(function (a, b) {
+    return a[0] - b[0]
+  })
+  first = points[0]
+
+  leftExtrapolated = function (x) {
+    var a = points[0], b = points[1];
+    return a[1] + (x - a[0]) * (b[1] - a[1]) / (b[0] - a[0])
+  }
+
+  interpolated = function (x, a, b) {
+    return a[1] + (x - a[0]) * (b[1] - a[1]) / (b[0] - a[0])
+  }
+
+  rightExtrapolated = function (x) {
+    var a = points[n - 1], b = points[n];
+    return b[1] + (x - b[0]) * (b[1] - a[1]) / (b[0] - a[0])
+  }
+
+  return function (x) {
+    var i
+    if (x <= first[0]) {
+      return leftExtrapolated(x)
+    }
+    for (i = 0; i < n; i += 1) {
+      if (x > points[i][0] && x <= points[i + 1][0]) {
+        return interpolated(x, points[i], points[i + 1])
+      }
+    }
+    return rightExtrapolated(x);
+  }
+}
+
 module.exports = mathLib;
-// let rand = new mathLib.random(0);
-// console.log(rand.nextFloat(), Math.random())
 

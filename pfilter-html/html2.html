@@ -26,7 +26,7 @@
       <button style="background-color:#deeaee;width: 100%" class="accordion">Model Snippet</button>
         <div class="panel">
           <div id="table">
-            <table id="table">
+            <table id="table1">
                <tr>
                 <td >Model parameters' name</td>
                 <td > <textarea id="Text1" style="width: 100%;border: 0">'R0, amplitude, gamma, mu, sigma, rho, psi'</textarea> </td>
@@ -34,19 +34,19 @@
               </tr>
               <tr>
                 <td class="variable"> Initial condition parameters' names</td>
-                <td > <input id= valInp style= "width:100%;border: 0" type="text"  value = 'S_0, E_0, I_0, R_0'</td>
+                <td > <input id= valInp style= "width:100%;border: 0" type="text"  value = 'S_0, E_0, I_0, R_0'></td>
               </tr>
               <tr>
                 <td class="variable"> States names</td>
-                <td ><input id= valInp style="width:100%;border: 0" type="text" value=' S, E, I, R , H'</td>
+                <td ><input id= valInp style="width:100%;border: 0" type="text" value=' S, E, I, R , H' ></td>
               </tr>
               <tr>
                 <td class="variable"> Zero name(s)</td>
-                <td ><input id= valInp style="width:100%;border: 0" type="text" value='H'</td>
+                <td ><input id= valInp style="width:100%;border: 0" type="text" value='H' ></td>
               </tr>
               <tr>
                 <td class="variable"> delta.t in the Euler simulation</td>
-                <td ><input id= valInp style="width:100%;border: 0" type="number" value="0.00273972602"</td>
+                <td ><input id= valInp style="width:100%;border: 0" type="number" value="0.00273972602" ></td>
               </tr>
             </table>
           </div>
@@ -55,7 +55,7 @@
         <button style="background-color:#b1cbbb" class="accordion">Particle Filter</button>
           <div class="panel">
             <div id="table">
-              <table id="table">
+              <table id="table2">
                 <tr>
                   <td  title="Integer; number of particles to use. " class = "variable"> Number of particles</td>
                   <td >
@@ -118,12 +118,6 @@
         <section id="upload">
           <div id= "upload">
             <label id = "label-file1" for="file1-upload" >
-            Initial parameters
-            </label>
-            <input  id="file1-upload" type="file" >
-          </div>
-          <div id= "upload">
-            <label id = "label-file1" for="file1-upload" >
             Data covariates
             </label>
             <input id="file1-upload" type="file" >
@@ -133,6 +127,12 @@
             Data cases
             </label>
             <input id="file2-upload" type="file" >
+          </div>
+          <div id= "upload">
+            <label id = "label-file3" for="file3-upload" >
+            Initial parameters
+            </label>
+            <input  id="file3-upload" type="file" >
           </div>
         </section>
       </div>

@@ -4,14 +4,13 @@ fs = require('fs')
 let fmin = require ('fmin')
 let mathLib = require('./mathLib')
 let snippet = require('./modelSnippet.js')
-var linearInterpolator = require('linear-interpolator/node_main')
 
 //////////////////////////////////////////data///////////////////////////////////////
-var LondonBidata = [], LondonCovar = []
+var dataCases = [], dataCovar = []
 var rate = new Array(6) 
 var params = [3.132490e+01, 3.883620e-01, 7.305000e+01, 6.469830e-04, 4.566000e+01, 4.598709e-01, 1.462546e-01, 3.399189e-02, 2.336327e-04, 4.221789e-07, 9.657741e-01 ]
 var times =[1940, 1944], maxFail = Infinity
-var Np = 10
+var Np =10
 var nvars 
 var toler = 1e-17
 
@@ -19,17 +18,17 @@ var toler = 1e-17
 //* 1st data set
 var London_covar = fs.readFileSync('./London_covar.csv').toString()
 var lines = London_covar.split('\n')
-for (let i = 1; i < lines.length; i++) {
-  LondonCovar.push(lines[i].split(','))
+for (let i = 0; i < lines.length - 1; i++) {
+  dataCovar.push(lines[i].split(','))
 }
-var dataCovar = [LondonCovar][0]
+dataCovar.shift()
 //* 2nd data set
-var London_BiData = fs.readFileSync('./London_BiDataMain.csv').toString()
+var London_BiData = fs.readFileSync('./London_BiData.csv').toString()
 var lines = London_BiData.split('\n')
-for (let i = 1; i < lines.length; i++) {
-  LondonBidata.push(lines[i].split(','))
+for (let i = 0; i < lines.length - 1; i++) {
+  dataCases.push(lines[i].split(','))
 }
-var dataCases = [LondonBidata][0]
+dataCases.shift()
 
 var d1 = []// read time and population from 1st data and make interpolation function
 var d2 = []// read time and birthrate from 1st data and make interpolation function
@@ -37,8 +36,8 @@ for (let i = 0; i < dataCovar.length - 1; i++) {
   d1.push([Number(dataCovar[i][0]), Number(dataCovar[i][1])])
   d2.push([Number(dataCovar[i][0]), Number(dataCovar[i][2])])
 }
-var interpolPop = linearInterpolator(d1)
-var interpolBirth = linearInterpolator(d2)
+var interpolPop = mathLib.interpolator(d1)
+var interpolBirth = mathLib.interpolator(d2)
 var START = new Date()
 
 
@@ -62,23 +61,25 @@ var filterMean = Array(timeLen).fill(null).map(() => Array(nvars))
 var timeCountData = 0, ws = 0, vsq, sumsq, ess, loglik = 0, lik //condLoglik = []
 var stateSaved =[]
 var states = Array(Np).fill(null).map(() => Array(nvars))
+var weights, normalWeights, trans, S, E, I, R, del_t, ST, simulateValue
+var modelCases, likvalue
 state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
 // First Np sets
 particles = new Array(Np).fill(null).map(() => [].concat(state))
 
 
 // Time loop
-for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += deltaT){
+for (k = t0; k < Number(dataCases[timeLen - 2][0]) + deltaT / 3; k += deltaT){
   if ( k > tdata - deltaT && k <= tdata) {
     k = tdata
   }
-  var lik = new Array(Np)
-  var weights = [], normalWeights = []
+  lik = new Array(Np)
+  weights = []; normalWeights = []
 
   //**PARTICLE LOOP
   for (np = 0; np < Np; np++){ //calc for each particle
-    var trans = new Array(6).fill(0)
-    var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
+    trans = new Array(6).fill(0)
+    S = particles[np][0]; E = particles[np][1]; I = particles[np][2]; R = particles[np][3]; H = particles[np][4]
       
     // transitions between classes
     if (k <= tdata || k > 1965 - deltaT ) {
@@ -86,11 +87,11 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
     } else {
       steps = mathLib.numEulerSteps(k, Number(dataCases[timeCountData + 1][0]), dt)
     }
-    var del_t = (1 / steps )* deltaT 
+    del_t = (1 / steps )* deltaT 
     for (let stp = 0; stp < steps; stp++) { // steps in each time interval
-      var st = k + stp * del_t
+      st = k + stp * del_t
       st = st.toFixed(10)
-      var simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], interpolPop(st), interpolBirth(st))
+      simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], interpolPop(st), interpolBirth(st))
       S = simulateValue[0]; E = simulateValue[1], I = simulateValue[2], R = simulateValue[3], H = simulateValue[4]
     }
     particles[np][0] = S
@@ -108,8 +109,8 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
     //***********RESAMPLE*************
     if (k >= Number(dataCases[0][0])){
       stateSaved.push([S,E,I,R,H])
-      var modelCases = Number(dataCases[timeCountData][1])
-      var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
+      modelCases = Number(dataCases[timeCountData][1])
+      likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
       particles[np][4] = 0
     }

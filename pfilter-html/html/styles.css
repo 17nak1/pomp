@@ -1,0 +1,328 @@
+/*imports*/
+@import url('https://fonts.googleapis.com/css?family=Merriweather%7CRoboto');
+:root{
+ --heading-font: -apple-system, 'Roboto', sans-serif;
+ --paragraph-font: 'Merriweather', serif;
+}
+body {
+  color: #2f3542;
+  background-color: #ffffff;
+  font-family: var(--heading-font);
+}
+h1#header {
+  text-align: left;
+  display: inline-block;
+  overflow: hidden;
+}
+
+section#step,
+section#setup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+section#upload {
+  display: flex;
+  /*justify-content: center;
+  align-items: center;*/
+  width: 100%;
+  margin: 20px 0% 4px 0%;
+}
+
+section#setup div {
+  display: inline-block;
+  width: 80%;
+}
+
+table#table {
+  min-width: 450px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 70%;
+  margin: 1px 10% 1px 10%;
+}
+table#table , table#th, table#td{
+  border: 1px solid black;
+}
+div#table{
+  margin: 4px 10% 4px 10%;
+  padding: 4px 4px;
+}
+div#table table, div#table th, div#table td {
+  border: 1px solid #a4b0be;
+}
+
+div#table th, div#table td {
+  padding: 4px 4px;
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  align-items: justify;
+  max-width: 800px;
+  margin: auto;
+  margin-bottom: 10px;
+}
+.container {
+  margin: auto;
+  display: flex;
+  align-items: justify;
+  justify-content: center;
+  max-width: 800px;
+}
+.column {
+    float: left;
+    width: 50%;
+    margin-right: 5%;
+    margin-left: 5%;
+}
+
+/* Clearfix (clear floats) */
+.row::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+
+section#step {
+  margin-top: 32px;
+}
+
+div#step {
+  display: inline-block;
+}
+div#button {
+  margin: 0 20px 0 20px;
+}
+div#data {
+  width: calc(100% - 612px);
+}
+div#data textarea {
+  margin-top: 100px;
+  width: 100%;
+  height: 300px;
+}
+div#loading {
+  margin: auto;
+  margin-top: 50px;
+  min-width: 500px;
+  width: 40%;
+  height: 30px;
+  border: #747d8c 1px solid;
+  border-radius: 2px;
+  background-color:#E8E8E8;
+}
+
+div#bar {
+  background-color: #2ed573;
+  height: 100%;
+  width: 0%;
+  text-align: center; 
+  line-height: 30px; /* To center it vertically */
+  color: white; 
+}
+
+div#header,
+section {
+  margin: 12px 20% 12px 20%;
+}
+
+div#banner {
+  z-index: 100;
+  background-color: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 10px;
+  width: 100%;
+  white-space: nowrap;
+  text-overflow: scroll;
+}
+div#fullGraph {
+  display: flex;
+  justify-content: center;
+
+}
+div#tableContainer {
+  overflow-x: scroll;
+  
+}
+hr {
+  margin-bottom: 0px;
+  border-top: 1px solid #a4b0be;
+}
+
+button{
+  -webkit-appearance: none;
+  box-shadow: none;
+  border-style: none;
+  height: 36px;
+  padding: 1px 12px;
+  border-radius: 6px;
+  color: white;
+  font-size: medium;
+  font-weight: bold;
+  background-color: #2ed573;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #7bed9f;
+}
+
+input[type="number"] {
+    -moz-appearance:textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+.custom-button {
+  float: left;
+  font-size: 13px;
+  margin-right: 20px;
+  padding: 4px;
+  cursor: pointer;
+  width: 150px;
+  border-style: none;
+  box-shadow: none;
+  border-style: none;
+  border-radius: 6px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  background-color: #D3D3D3;
+    }
+
+
+.authors, .date{
+  display: block;
+  width: 800px;
+  margin-left: 6%;
+}
+.authors h3, .authors h4, .date h4{
+  /*margin: 5px 0px;*/
+  font-weight: normal;
+}
+/*p{
+  text-align: justify;
+  max-width: 800px;
+  margin: auto;
+  margin-bottom: 10px;
+}
+p.equation{
+  font-size: 0.85rem;
+  text-align:left;
+  margin-left: 7%;
+  margin-bottom: 15px;
+}*/
+#header{
+  margin-bottom: 0px;
+}
+.variable{
+  font-style: italic;
+}
+
+* {
+  box-sizing: border-box;
+}
+#input{
+  margin-right: 10px ;
+  margin-left: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+h3#answer{
+  text-align: center;
+  margin-left:10px;
+}
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.active, .accordion:hover {
+  background-color: #ccc;
+}
+
+.panel {
+  padding: 10 10px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  margin: 1px 10% 1px 10%;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 6px;
+  left: 1px;
+  right: 1px;
+  bottom: 5px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 10px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #66997a;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+

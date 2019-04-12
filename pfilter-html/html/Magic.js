@@ -25,7 +25,7 @@ function start () {
       for (var line = 1; line < lines.length; line++) {
         dataCovar.push(lines[line].split(','))
       }
-      console.log(dataCovar)
+      // console.log(dataCovar)
     }
     reader.readAsText(file)
   }
@@ -42,24 +42,24 @@ function start () {
       for (var line = 1; line < lines.length; line++) {
         dataCases.push(lines[line].split(','))
       }
-      console.log(dataCases)
+      console.log(dataCases[0][0])
     }
     reader.readAsText(file)
   }
 
-  document.getElementById('file2-upload').onchange = function () {
-    var file = this.files[0]
-    dataInit = []
-    var reader = new FileReader ()
-    reader.onload = function () {
-      var lines = this.result.split('\n')
-      for (var line = 1; line < lines.length; line++) {
-        dataInit.push(lines[line].split(','))
-      }
-      console.log(dataInit)
-    }
-    reader.readAsText(file)
-  }
+  // document.getElementById('file2-upload').onchange = function () {
+  //   var file = this.files[0]
+  //   dataInit = []
+  //   var reader = new FileReader ()
+  //   reader.onload = function () {
+  //     var lines = this.result.split('\n')
+  //     for (var line = 1; line < lines.length; line++) {
+  //       dataInit.push(lines[line].split(','))
+  //     }
+  //     console.log(dataInit)
+  //   }
+  //   reader.readAsText(file)
+  // }
 
   let computeButton = document.querySelector('button#calc')
   let downloadButton = document.querySelector('button#download')
@@ -70,24 +70,23 @@ function start () {
     downloadButton.style.display = ''
     downloadButton.style.backgroundColor = '#D3D3D3'
 
-    let setup1 = document.querySelector('#setup')
-    let table1 = setup1.getElementById('table1')
-    let rows = table1.querySelectorAll('tr')
-    let i =1
-    // for (let i = 1; i < rows.length; i++) {
+    let setup = document.querySelector('#setup')
+    let table = document.getElementById('table')
+    let rows = table.querySelectorAll('tr')
+    
+    for (let i = 1; i < rows.length; i++) {
       let row = rows[i]
       let cols = row.querySelectorAll('td')
       let cell = cols[cols.length - 1]
-      var input = cell.getElementById('Text1').value;
-      console.log(input)
-      // inputArr.push(input)// Read parameters from the table
+      var input = cell.querySelector('input#valInp').value;
+      inputArr.push(Number(input))// Read parameters from the table
       // if (init.length) {
       //   cell.querySelector('input#valInp').disabled = 'true'
       //   if (i !== 12) {
       //     cell.querySelector('input#valInp').value = ''
       //   } 
       // }
-    // }
+    }
     var data1 = []
     var data2 = []
     for (let i = 0; i < dataCovar.length - 1; i++) {
@@ -109,7 +108,7 @@ function start () {
       res.splice(0, 0, ['S', 'E', 'I', 'R', 'H'])
     }, 0)
   }
-  var acc = document.getElementsByClassName("accordion")
+  
 
   for (i = 0; i < acc.length; i++) {
     acc[i].addEventListener("click", function() {

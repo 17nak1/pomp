@@ -1,16 +1,7 @@
 
 snippet = {}
 let mathLib = require('./mathLib')
-//* Set the seed for rnorm-In R:RNGkind("L'Ecuyer-CMRG", normal.kind="Box-Muller");set.seed(1234) 
-// const libR = require('lib-r-math.js')
-// const {
-//   Poisson,
-//   rng: { MersenneTwister },
-//   rng: { normal: { Inversion } }
-// } = libR
-// const mt = new MersenneTwister(0)// 
-// const { rpois } = Poisson(new Inversion(mt))
-// mt.init(1234)
+
 snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   var seas, births, beta, beta0, foi, R0, tt, va
   var trans = new Array(6).fill(0)
@@ -20,7 +11,7 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   
   R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] 
   beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma
-  // var S = N[0], E = N[1], I = N[2], R = N[3], H = N[4]
+  
   va = snippet.rprocessVaccine(t)
   tt = (t - Math.floor(t)) * 365.25
   if ((tt >= 7 && tt <= 100) || (tt >= 115 && tt <= 199) || (tt >= 252 && tt <= 300) || (tt >= 308 && tt <= 356)) {
@@ -29,7 +20,7 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
     seas = 1 - amplitude
   }                 
   beta = R0 * (gamma + mu) * (sigma + mu) * seas / sigma //seasonal transmission rate
-  foi = beta * I / pop//;if( t<1945.05 && t>1945) console.log(t, foi)
+  foi = beta * I / pop
   rate[0] = foi//force of infection
   rate[1] = mu// natural S death
   rate[2] = sigma// rate of ending of latent stage
@@ -37,7 +28,7 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   rate[4] = gamma// recovery
   rate[5] = mu// natural I death 
    
-  births = Math.random//mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
+  births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
   mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
   mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
   mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)
