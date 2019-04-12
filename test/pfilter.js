@@ -4,114 +4,116 @@ fs = require('fs')
 let fmin = require ('fmin')
 let mathLib = require('./mathLib')
 let snippet = require('./modelSnippet.js')
-var linearInterpolator = require('linear-interpolator/node_main')
+let simulator = require ('./simulator.js')
 
 //////////////////////////////////////////data///////////////////////////////////////
-var LondonBidata = [], LondonCovar = []
-var rate = new Array(6) 
-var params = [3.132490e+01, 3.883620e-01, 7.305000e+01, 6.469830e-04, 4.566000e+01, 4.598709e-01, 1.462546e-01, 3.399189e-02, 2.336327e-04, 4.221789e-07, 9.657741e-01 ]
-var times =[1940, 1944], maxFail = Infinity
-var Np = 10
-var nvars 
-var toler = 1e-17
+let dataCases = [], dataCovar = []
+let params = [3.132490e+01, 3.883620e-01, 7.305000e+01, 6.469830e-04, 4.566000e+01, 4.598709e-01, 1.462546e-01, 3.399189e-02, 2.336327e-04, 4.221789e-07, 9.657741e-01 ]
+let maxFail = Infinity
+let Np = 10
+console.log("Np",Np)
+let toler = 1e-17
 
 
 //* 1st data set
-var London_covar = fs.readFileSync('./London_covar.csv').toString()
+let London_covar = fs.readFileSync('./London_covar.csv').toString()
 var lines = London_covar.split('\n')
-for (let i = 1; i < lines.length; i++) {
-  LondonCovar.push(lines[i].split(','))
+for (let i = 1; i < lines.length - 1; i++) {
+  dataCovar.push(lines[i].split(','))
 }
-var dataCovar = [LondonCovar][0]
-//* 2nd data set
-var London_BiData = fs.readFileSync('./London_BiDataMain.csv').toString()
-var lines = London_BiData.split('\n')
-for (let i = 1; i < lines.length; i++) {
-  LondonBidata.push(lines[i].split(','))
-}
-var dataCases = [LondonBidata][0]
 
-var d1 = []// read time and population from 1st data and make interpolation function
-var d2 = []// read time and birthrate from 1st data and make interpolation function
+//* 2nd data set
+let London_BiData = fs.readFileSync('./London_BiData.csv').toString()
+var lines = London_BiData.split('\n')
+for (let i = 1; i < lines.length - 1; i++) {
+  dataCases.push(lines[i].split(','))
+}
+
+
+let d1 = []// read time and population from 1st data and make interpolation function
+let d2 = []// read time and birthrate from 1st data and make interpolation function
 for (let i = 0; i < dataCovar.length - 1; i++) {
   d1.push([Number(dataCovar[i][0]), Number(dataCovar[i][1])])
   d2.push([Number(dataCovar[i][0]), Number(dataCovar[i][2])])
 }
-var interpolPop = linearInterpolator(d1)
-var interpolBirth = linearInterpolator(d2)
-var START = new Date()
+let interpolPop = mathLib.interpolator (d1)
+let interpolBirth = mathLib.interpolator (d2)
+let START = new Date()
 
 
-var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, I_0, R_0] = params
-var paramsIC = [S_0, E_0, I_0, R_0, H = 0]
-var [t0, tdata] = times
-var nvars = paramsIC.length
-var deltaT = 14 / 365.25
-var dt = 1 / 365.25
-var pop , birthrate
-var timeLen = dataCases.length 
-var va = 0, seas
-var particles = [], state =[]
-var nlost = 0
-var sampleNum = new Array(Np)
-var doPredictionVariance = 0, doPredictionMean = 1, doFilterMean = 0 , allFail = 0
-var predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
-var predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
-var condLoglik = Array(timeLen).fill(null).map(() => Array(1))
-var filterMean = Array(timeLen).fill(null).map(() => Array(nvars))
-var timeCountData = 0, ws = 0, vsq, sumsq, ess, loglik = 0, lik //condLoglik = []
-var stateSaved =[]
-var states = Array(Np).fill(null).map(() => Array(nvars))
+let [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, I_0, R_0] = params
+let [t0, tdata] = [1940, 1944]
+let nvars = 5
+let deltaT = 14 / 365.25
+let dt = 1 / 365.25
+let doPredictionVariance = 0, doPredictionMean = 1, doFilterMean = 0 , allFail = 0
+
+let timeLen = dataCases.length 
+let nlost = 0
+
+let rate = [], trans = []
+let particles = [], state =[]
+let sampleNum = Array.from(Array(Np).keys())
+let condLoglik = []
+let stateSaved =[]
+
+let timeCountData = 0, ws ,w , vsq, sumsq, ess, loglik = 0, lik 
+
+let predictionMean, predictionVariance, filterMean
+let states = Array(Np).fill(null).map(() => Array(nvars))
+let weights, normalWeights, S, E, I, R, del_t, ST, simulateValue
+let modelCases, likvalue
+if (doPredictionMean) {
+  predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
+}
+if (doPredictionVariance) {
+  predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
+}
+if (doFilterMean) {
+  filterMean = Array(timeLen).fill(null).map(() => Array(nvars))
+}
+
 state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
 // First Np sets
-particles = new Array(Np).fill(null).map(() => [].concat(state))
-
+var aa = new Array(Np).fill(null).map(() => [].concat(state))
 
 // Time loop
-for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += deltaT){
+for (k = t0; k <= Number(dataCases[timeLen - 2][0]) + deltaT / 3 ; k += deltaT){//Number(dataCases[timeLen - 2][0]) + deltaT / 3
   if ( k > tdata - deltaT && k <= tdata) {
     k = tdata
   }
-  var lik = new Array(Np)
-  var weights = [], normalWeights = []
-
+  weights = []; normalWeights = []
+  
+  if ( k > t0) {
+    for (np = 0; np < Np; np++) { // copy the particles
+      aa[np] = [].concat(particles[sampleNum[np]])
+      aa[np][nvars - 1] = 0
+    }
+  } 
+  
   //**PARTICLE LOOP
   for (np = 0; np < Np; np++){ //calc for each particle
-    var trans = new Array(6).fill(0)
-    var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
-      
-    // transitions between classes
-    if (k <= tdata || k > 1965 - deltaT ) {
-      steps = mathLib.numMapSteps(k, k + deltaT, dt)
-    } else {
-      steps = mathLib.numEulerSteps(k, Number(dataCases[timeCountData + 1][0]), dt)
-    }
-    var del_t = (1 / steps )* deltaT 
-    for (let stp = 0; stp < steps; stp++) { // steps in each time interval
-      var st = k + stp * del_t
-      st = st.toFixed(10)
-      var simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], interpolPop(st), interpolBirth(st))
-      S = simulateValue[0]; E = simulateValue[1], I = simulateValue[2], R = simulateValue[3], H = simulateValue[4]
-    }
-    particles[np][0] = S
-    particles[np][1] = E
-    particles[np][2] = I
-    particles[np][3] = R
-    particles[np][4] = H
-   
-    states[np][0] = S || 0
-    states[np][1] = E || 0
-    states[np][2] = I || 0
-    states[np][3] = R || 0
-    states[np][4] = H || 0
+    trans = []
+
+    particles[np] = simulator.simulate(aa[np], k, tdata, deltaT, dt, timeCountData, interpolPop, interpolBirth,params, Number(dataCases[dataCases.length - 1]), Number(dataCases[timeCountData + 1][0]))
+    
+    S = particles[np][0] 
+    E = particles[np][1]
+    I = particles[np][2] 
+    R = particles[np][3] 
+    H = particles[np][4] 
+
+    // console.log(k)
      
-    //***********RESAMPLE*************
+    //***********weight*************
     if (k >= Number(dataCases[0][0])){
-      stateSaved.push([S,E,I,R,H])
-      var modelCases = Number(dataCases[timeCountData][1])
-      var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
+      if (stateSaved) {
+        stateSaved.push(particles[np]) //[S,E,I,R,H])
+      }
+      modelCases = Number(dataCases[timeCountData][1])
+      likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
       weights.push(likvalue)
-      particles[np][4] = 0
+      
     }
   }//  end particle loop
   
@@ -125,7 +127,7 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
       normalWeights[i] = weights[i] / sumOfWeights
     }
     // check the weights and compute sum and sum of squares
-    var  w = 0, ws = 0, nlost = 0
+    w = 0, ws = 0, nlost = 0
     for (let i = 0; i < Np; i++) {
       if (weights[i] > toler) {
         w += weights[i]
@@ -154,19 +156,16 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
     condLoglik[timeCountData] = [timeCountData + 1, lik]
     // the total conditional logliklihood in the time process is loglik
     loglik += lik
-    mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)//;console.log(k, sampleNum)
-    for (np = 0; np < Np; np++) { // copy the particles
-      particles[np] = [].concat(particles[sampleNum[np]])
-      particles[np][nvars - 1] = 0
-    }
+    mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)
+    
     // Compute outputs
     for (let j = 0; j< nvars; j++) {
       // compute prediction mean
       if (doPredictionMean || doPredictionVariance) {
-        var sum = 0, nlost = 0
+        let sum = 0, nlost = 0
         for (let nrow =0; nrow < Np; nrow++){
-          if (states[nrow][j]) {
-            sum += states[nrow][j]
+          if (particles[nrow][j]) {
+            sum += particles[nrow][j]
           } else {
             nlost++
           }
@@ -178,8 +177,8 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
       if (doPredictionVariance) {
         sumsq = 0
         for (let nrow = 0; nrow < Np; nrow++){
-          if (states[nrow][j]) {
-            vsq = states[nrow][j] - sum
+          if (particles[nrow][j]) {
+            vsq = particles[nrow][j] - sum
             sumsq += Math.pow(vsq, 2)
           }
         }
@@ -190,16 +189,16 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
         if (allFail) {   // unweighted average
           ws = 0
           for (let nrow =0; nrow < Np; nrow++){
-            if (states[nrow][j]) {
-              ws += states[nrow][j]
+            if (particles[nrow][j]) {
+              ws += particles[nrow][j]
             }
           } 
           filterMean[timeCountData][j] = ws / Np//;console.log(ws / Np)
         } else {      // weighted average
           ws = 0
           for (let nrow =0; nrow < Np; nrow++){
-            if (states[nrow][j]) {
-              ws += states[nrow][j] * weights[nrow]
+            if (particles[nrow][j]) {
+              ws += particles[nrow][j] * weights[nrow]
             }
           }
           filterMean[timeCountData][j] = ws / w
@@ -209,6 +208,7 @@ for (k = t0; k < Number(dataCases[dataCases.length - 3][0]) + deltaT / 3; k += d
     timeCountData++ 
   }
 }//endTime
+
 console.log(loglik)
 const createCsvWriter = require('csv-writer').createArrayCsvWriter;
 const csvWriter = createCsvWriter({
