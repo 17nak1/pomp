@@ -102,25 +102,13 @@ function start () {
       // var tem = inputArr[9]
       // inputArr[9] = inputArr[10]
       // inputArr[10] = tem
-      res.push(pfilterCalculation({params:inputArr, Np:100,times:times, dt:1 / 365.25,runPredMean:1,  dataCases:dataCases, interpolPop:interpolPopulation, interpolBirth:interpolBirth}))
+      res.push(pfilterCalculation({params:inputArr, Np:1000,times:times, dt:1 / 365.25,runPredMean:1,  dataCases:dataCases, interpolPop:interpolPopulation, interpolBirth:interpolBirth}))
         
       console.log(res)
       res.splice(0, 0, ['S', 'E', 'I', 'R', 'H'])
     }, 0)
   }
-  
 
-  for (i = 0; i < acc.length; i++) {
-    acc[i].addEventListener("click", function() {
-      this.classList.toggle("active")
-      var panel = this.nextElementSibling
-      if (panel.style.maxHeight){
-        panel.style.maxHeight = null;
-      } else {
-        panel.style.maxHeight = panel.scrollHeight + "px"
-      } 
-    })
-  }
   
   downloadButton.onclick = function () {
     Csv()

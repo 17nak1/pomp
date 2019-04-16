@@ -42,9 +42,6 @@ mathLib.numEulerSteps = function(t1, t2, dt) {
   var DOUBLE_EPS = 10e-8
   var tol = Math.sqrt(DOUBLE_EPS)
   var nstep
-  // nstep will be the number of Euler steps to take in going from t1 to t2, note also that the stepsize changes.
-  // this choice is meant to be conservative (i.e., so that the actual dt does not exceed the specified dt
-  // by more than the relative tolerance 'tol') and to counteract roundoff error.
   if (t1 >= t2) {
     dt = 0
     nstep = 0
@@ -75,7 +72,7 @@ mathLib.nosortResamp = function (nw, w, np, p, offset) {
     throw "in 'systematic_resampling': non-positive sum of weight"
   }
   var du = w[nw - 1] / np
-  var u = -du * U.unif_rand()//Math.random()
+  var u = -du * Math.random()// U.unif_rand()
 
   for (j = 0, i = 0; j < np; j++) {
     u += du
@@ -103,7 +100,7 @@ mathLib.reulermultinom = function (m = 1, size, rateAdd, dt, transAdd, rate, tra
     p += rate[k + rateAdd]// total event rate
   }
   if (p > 0) {
-    size = rbinom(1, size, 1 - Math.exp(-p * dt)) // total number of events
+    size = rbinom(1, size, 1 - Math.exp(-p * dt))// total number of events
     if (!(isFinite(size)))
       throw 'result of binomial draw is not finite.'
     m -= 1
@@ -130,50 +127,80 @@ mathLib.rpois = function (lambda = 1) {
   }
   return k-1
 }
-// mathLib.random = function(seed) {
-//   function _seed(s) {
-//     if ((seed = (s|0) % 2147483647) <= 0) {
-//       seed += 2147483646;
-//     }
-//   }
 
-//   function _nextInt() {
-//     return seed = seed * 48271 % 2147483647;
-//   }
+mathLib.interpolator = function (points) {
+  var first, n = points.length - 1,
+    interpolated,
+    leftExtrapolated,
+    rightExtrapolated;
 
-//   function _nextFloat() {
-//     return (_nextInt() - 1) / 2147483646;
-//   }
+  if (points.length === 0) {
+    return function () {
+      return 0
+    }
+  }
 
-//   _seed(seed);
+  if (points.length === 1) {
+    return function () {
+      return points[0][1]
+    }
+  }
 
-//   return {
-//     seed: _seed,
-//     nextInt: _nextInt,
-//     nextFloat: _nextFloat
-//   };
-// }
+  points = points.sort(function (a, b) {
+    return a[0] - b[0]
+  })
+  first = points[0]
+
+  leftExtrapolated = function (x) {
+    var a = points[0], b = points[1];
+    return a[1] + (x - a[0]) * (b[1] - a[1]) / (b[0] - a[0])
+  }
+
+  interpolated = function (x, a, b) {
+    return a[1] + (x - a[0]) * (b[1] - a[1]) / (b[0] - a[0])
+  }
+
+  rightExtrapolated = function (x) {
+    var a = points[n - 1], b = points[n];
+    return b[1] + (x - b[0]) * (b[1] - a[1]) / (b[0] - a[0])
+  }
+
+  return function (x) {
+    var i
+    if (x <= first[0]) {
+      return leftExtrapolated(x)
+    }
+    for (i = 0; i < n; i += 1) {
+      if (x > points[i][0] && x <= points[i + 1][0]) {
+        return interpolated(x, points[i], points[i + 1])
+      }
+    }
+    return rightExtrapolated(x);
+  }
+}
+
 module.exports = mathLib;
-// let rand = new mathLib.random(0);
-// console.log(rand.nextFloat(), Math.random())
-
-
+// var START = new Date()
+// for(i=1;i<1000000;i++){
+//   rbinom(1,i,.2)
+// }
+// console.log(new Date() - START)
 },{"lib-r-math.js":6,"math-erf":8}],2:[function(require,module,exports){
 
 snippet = {}
 let mathLib = require('./mathLib')
 //* Set the seed for rnorm-In R:RNGkind("L'Ecuyer-CMRG", normal.kind="Box-Muller");set.seed(1234) 
 const libR = require('lib-r-math.js')
-const {
-  Poisson,
-  rng: { MersenneTwister },
-  rng: { normal: { Inversion } }
-} = libR
+// const {
+//   Poisson,
+//   rng: { MersenneTwister },
+//   rng: { normal: { Inversion } }
+// } = libR
 // const mt = new MersenneTwister(0)// 
 // const { rpois } = Poisson(new Inversion(mt))
 // mt.init(1234)
-snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
-  var seas, births, beta, beta0, foi, R0, tt, va
+snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, births) {
+  var seas, beta, beta0, foi, R0, tt, va
   var trans = new Array(6).fill(0)
   var rate = new Array(6) 
   var deltaT = 14 / 365.25
@@ -181,7 +208,7 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
   
   R0 = params[0], amplitude = params[1], gamma = params[2], mu = params[3], sigma = params[4] 
   beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma
-  // var S = N[0], E = N[1], I = N[2], R = N[3], H = N[4]
+  
   va = snippet.rprocessVaccine(t)
   tt = (t - Math.floor(t)) * 365.25
   if ((tt >= 7 && tt <= 100) || (tt >= 115 && tt <= 199) || (tt >= 252 && tt <= 300) || (tt >= 308 && tt <= 356)) {
@@ -190,18 +217,18 @@ snippet.rprocess = function (params, t, del_t, [S,E,I,R,H], pop, birthrate) {
     seas = 1 - amplitude
   }                 
   beta = R0 * (gamma + mu) * (sigma + mu) * seas / sigma //seasonal transmission rate
-  foi = beta * I / pop//;if( t<1945.05 && t>1945) console.log(t, foi)
+  foi = beta * I / pop
   rate[0] = foi//force of infection
   rate[1] = mu// natural S death
   rate[2] = sigma// rate of ending of latent stage
   rate[3] = mu// natural E death
   rate[4] = gamma// recovery
   rate[5] = mu// natural I death 
-   // if( t < 1944 && t>=1943.986310
-  births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
+   
+  // births = mathLib.rpois(birthrate * (1 - va) * del_t )// Poisson births
   mathLib.reulermultinom(2, Math.round(S), 0, del_t, 0, rate, trans)
   mathLib.reulermultinom(2, Math.round(E), 2, del_t, 2, rate, trans)
-  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)//;console.log(trans)
+  mathLib.reulermultinom(2, Math.round(I), 4, del_t, 4, rate, trans)
   S += (births - trans[0] - trans[1])
   E += (trans[0] - trans[2] - trans[3]) 
   I += (trans[2] - trans[4] - trans[5]) 
@@ -339,18 +366,9 @@ snippet.rmeasure = function (H, rho, psi) {
   }
   return cases
 }
-// snippet.paramsMod = {"R0":0,"amplitude":0,"gamma":0,"mu":0,"sigma":0,"rho":0,"psi":0}
-
-// snippet.paramsIc = ["S_0","E_0","R_0","I_0"]
-
-// snippet.stateNames = ["S","E","I","R","H"]
-
-// snippet.zeroNames = ["H"]
 
 module.exports = snippet
-// snippet.paramsMod.R0 = 10
 
-// console.log(snippet.paramsMod[0])
 },{"./mathLib":1,"lib-r-math.js":6}],3:[function(require,module,exports){
 'use strict';
 
@@ -1390,7 +1408,7 @@ function numberPrecision(prec = 6) {
         if (isNaN(x)) {
             return NaN;
         }
-        return Number.parseFloat(x.toPrecision(prec));
+        return Number(prec);//Number.parseFloat(x.toPrecision(prec));
     }
     return arrayrify(convert);
 }
@@ -3548,7 +3566,7 @@ function _rgamma(a = 1, scale = 1, rng) {
             return 0;
         e = 1.0 + exp_m1 * a;
         while (true) {
-            p = e * rng.unif_rand();
+            p = e * Math.random();
             if (p >= 1.0) {
                 x = -log((e - p) / a);
                 if (sexp_1.exp_rand(rng.unif_rand) >= (1.0 - a) * log(x))
@@ -3573,7 +3591,7 @@ function _rgamma(a = 1, scale = 1, rng) {
     ret_val = x * x;
     if (t >= 0.0)
         return scale * ret_val;
-    u = rng.unif_rand();
+    u = Math.random();
     if (d * u <= t * t * t)
         return scale * ret_val;
     if (a !== aaa) {
@@ -3614,7 +3632,7 @@ function _rgamma(a = 1, scale = 1, rng) {
     }
     while (true) {
         e = sexp_1.exp_rand(rng.unif_rand);
-        u = rng.unif_rand();
+        u = Math.random();
         u = u + u - 1.0;
         if (u < 0.0)
             t = b - si * e;
@@ -3795,7 +3813,7 @@ function _rpois(mu, rng) {
                 q = p0 = p = exp(-mu);
             }
             while (true) {
-                u = rng.unif_rand();
+                u = Math.random();
                 if (u <= p0)
                     return 0;
                 if (l !== 0) {
@@ -3827,7 +3845,7 @@ function _rpois(mu, rng) {
             return pois;
         fk = pois;
         difmuk = mu - fk;
-        u = rng.unif_rand();
+        u = Math.random();
         if (d * u >= difmuk * difmuk * difmuk)
             return pois;
     }
@@ -3854,7 +3872,7 @@ function _rpois(mu, rng) {
         }
         if (!gotoStepF) {
             E = sexp_1.exp_rand(rng.unif_rand);
-            u = 2 * rng.unif_rand() - 1;
+            u = 2 * Math.random() - 1;
             t = 1.8 + fsign_1.fsign(E, u >= 0);
         }
         if (t > -0.6744 || gotoStepF) {
@@ -4167,7 +4185,7 @@ function _rbinom(nin, pp, rng) {
         return r;
     if (r >= INT_MAX) {
         printer_rbinom('Evade overflow:%d > MAX_SAFE_INTEGER', r);
-        return qbinom_1.qbinom(rng.unif_rand(), r, pp, false, false);
+        return qbinom_1.qbinom(Math.random(), r, pp, false, false);
     }
     n = trunc(r);
     p = fmin2(pp, 1 - pp);
@@ -4208,8 +4226,8 @@ function _rbinom(nin, pp, rng) {
     }
     let gotoFinis = false;
     while (true && !gotoL_np_small) {
-        u = rng.unif_rand() * p4;
-        v = rng.unif_rand();
+        u = Math.random() * p4;
+        v = Math.random();
         if (u <= p1) {
             ix = trunc(xm - p1 * v + u);
             gotoFinis = true;
@@ -4295,7 +4313,7 @@ function _rbinom(nin, pp, rng) {
         while (true) {
             ix = 0;
             f = qn;
-            u = rng.unif_rand();
+            u = Math.random();
             while (true) {
                 if (u < f) {
                     gotoFinis = true;
@@ -7075,8 +7093,8 @@ class Inversion extends inormal_rng_1.IRNGNormal {
         super(_rng);
     }
     internal_norm_rand() {
-        let u1 = this.rng.unif_rand();
-        let t = this.rng.unif_rand();
+        let u1 = this.Math.random();
+        let t = this.Math.random();
         u1 = new Int32Array([BIG * u1])[0] + t;
         const result = qnorm_1.qnorm(u1 / BIG, 0.0, 1.0, !!1, !!0);
         return isArray(result) ? result[0] : result;
@@ -7252,7 +7270,7 @@ function rsignrank(nn, n, rng) {
         let r = 0.0;
         let k = floor(nRound);
         for (let i = 0; i < k;) {
-            r += ++i * floor(rng.unif_rand() + 0.5);
+            r += ++i * floor(Math.random() + 0.5);
         }
         return r;
     });
@@ -9926,7 +9944,7 @@ function rbeta(n, aa, bb, rng) {
         if (!R_FINITE(aa) && !R_FINITE(bb))
             return 0.5;
         if (aa === 0 && bb === 0)
-            return rng.unif_rand() < 0.5 ? 0 : 1;
+            return Math.random() < 0.5 ? 0 : 1;
         if (!R_FINITE(aa) || bb === 0)
             return 1.0;
         if (!R_FINITE(bb) || aa === 0)
@@ -9979,8 +9997,8 @@ function rbeta(n, aa, bb, rng) {
                 k2 = 0.25 + (0.5 + 0.25 / delta) * a;
             }
             for (;;) {
-                u1 = rng.unif_rand();
-                u2 = rng.unif_rand();
+                u1 = Math.random();
+                u2 = Math.random();
                 if (u1 < 0.5) {
                     y = u1 * u2;
                     z = u1 * y;
@@ -10008,8 +10026,8 @@ function rbeta(n, aa, bb, rng) {
                 gamma = a + 1.0 / beta;
             }
             do {
-                u1 = rng.unif_rand();
-                u2 = rng.unif_rand();
+                u1 = Math.random();
+                u2 = Math.random();
                 v_w_from__u1_bet(a);
                 z = u1 * u1 * u2;
                 r = gamma * v - 1.3862944;
@@ -10422,7 +10440,7 @@ function rcauchy(n, location = 0, scale = 1, rng) {
         if (scale === 0 || !R_FINITE(location))
             return location;
         else
-            return location + scale * Math.tan(M_PI * rng.unif_rand());
+            return location + scale * Math.tan(M_PI * Math.random());
     });
     return result.length === 1 ? result[0] : result;
 }
@@ -14063,7 +14081,7 @@ function _rhyper(nn1in, nn2in, kkin, rng) {
         if (kkin === 1) {
             return rbinom_1.rbinom(1, kkin, nn1in / (nn1in + nn2in), rng);
         }
-        return qhyper_1.qhyper(rng.unif_rand(), nn1in, nn2in, kkin, false, false);
+        return qhyper_1.qhyper(Math.random(), nn1in, nn2in, kkin, false, false);
     }
     nn1 = nn1in;
     nn2 = nn2in;
@@ -14132,7 +14150,7 @@ function _rhyper(nn1in, nn2in, kkin, rng) {
         while (true) {
             p = w;
             ix = minjx;
-            u = rng.unif_rand() * scale;
+            u = Math.random() * scale;
             printer_rhyper('  _new_ u = %d', u);
             while (u > p) {
                 u -= p;
@@ -14173,8 +14191,8 @@ function _rhyper(nn1in, nn2in, kkin, rng) {
         printer_rhyper('-------- p123= c(%d,%d,%d)\n', p1, p2, p3);
         let n_uv = 0;
         while (true) {
-            let u = rng.unif_rand() * p3;
-            let v = rng.unif_rand();
+            let u = Math.random() * p3;
+            let v = Math.random();
             n_uv++;
             if (n_uv >= 10000) {
                 printer_rhyper('rhyper() branch III: giving up after %d rejections', n_uv);
@@ -14547,7 +14565,7 @@ function rlogis(N, location = 0, scale = 1, rng) {
         if (scale === 0 || !R_FINITE(location))
             return location;
         else {
-            let u = rng.unif_rand();
+            let u = Math.random();
             return location + scale * log(u / (1 - u));
         }
     });
@@ -15497,7 +15515,7 @@ class AhrensDieter extends inormal_rng_1.IRNGNormal {
         super(_rng);
     }
     internal_norm_rand() {
-        let u1 = this.rng.unif_rand();
+        let u1 = this.Math.random();
         let s = 0.0;
         let w;
         let aa;
@@ -15516,7 +15534,7 @@ class AhrensDieter extends inormal_rng_1.IRNGNormal {
             u2 = u1 - i[0];
             aa = a[i[0] - 1];
             while (u2 <= t[i[0] - 1]) {
-                u1 = this.rng.unif_rand();
+                u1 = this.Math.random();
                 w = u1 * (a[i[0]] - aa);
                 tt = (w * 0.5 + aa) * w;
                 for (;;) {
@@ -15524,13 +15542,13 @@ class AhrensDieter extends inormal_rng_1.IRNGNormal {
                         y = aa + w;
                         return s === 1.0 ? -y : y;
                     }
-                    u1 = this.rng.unif_rand();
+                    u1 = this.Math.random();
                     if (u2 < u1)
                         break;
                     tt = u1;
-                    u2 = this.rng.unif_rand();
+                    u2 = this.Math.random();
                 }
-                u2 = this.rng.unif_rand();
+                u2 = this.Math.random();
             }
             w = (u2 - t[i[0] - 1]) * h[i[0] - 1];
         }
@@ -15549,15 +15567,15 @@ class AhrensDieter extends inormal_rng_1.IRNGNormal {
                 w = u1 * d[i[0] - 1];
                 tt = (w * 0.5 + aa) * w;
                 for (;;) {
-                    u2 = this.rng.unif_rand();
+                    u2 = this.Math.random();
                     if (u2 > tt)
                         break jump;
-                    u1 = this.rng.unif_rand();
+                    u1 = this.Math.random();
                     if (u2 < u1)
                         break;
                     tt = u1;
                 }
-                u1 = this.rng.unif_rand();
+                u1 = this.Math.random();
             }
         }
         y = aa + w;
@@ -15597,8 +15615,8 @@ class BoxMuller extends inormal_rng_1.IRNGNormal {
             return s;
         }
         else {
-            theta = 2 * M_PI * this.rng.unif_rand();
-            let R = sqrt(-2 * log(this.rng.unif_rand())) +
+            theta = 2 * M_PI * this.Math.random();
+            let R = sqrt(-2 * log(this.Math.random())) +
                 10 * DBL_MIN;
             this.BM_norm_keep = R * sin(theta);
             return R * cos(theta);
@@ -15627,18 +15645,18 @@ class BuggyKindermanRamage extends inormal_rng_1.IRNGNormal {
         const C1 = 0.398942280401433;
         const C2 = 0.180025191068563;
         const g = (x) => C1 * exp(-x * x / 2.0) - C2 * (A - x);
-        const u1 = this.rng.unif_rand();
+        const u1 = this.Math.random();
         let u2;
         let u3;
         let tt;
         if (u1 < 0.884070402298758) {
-            let u2 = this.rng.unif_rand();
+            let u2 = this.Math.random();
             return A * (1.1311316354418 * u1 + u2 - 1);
         }
         if (u1 >= 0.973310954173898) {
             for (;;) {
-                u2 = this.rng.unif_rand();
-                u3 = this.rng.unif_rand();
+                u2 = this.Math.random();
+                u3 = this.Math.random();
                 tt = A * A - 2 * log(u3);
                 if (u2 * u2 < A * A / tt)
                     return u1 < 0.986655477086949 ? sqrt(tt) : -sqrt(tt);
@@ -15646,8 +15664,8 @@ class BuggyKindermanRamage extends inormal_rng_1.IRNGNormal {
         }
         if (u1 >= 0.958720824790463) {
             for (;;) {
-                u2 = this.rng.unif_rand();
-                u3 = this.rng.unif_rand();
+                u2 = this.Math.random();
+                u3 = this.Math.random();
                 tt = A - 0.63083480192196 * fmin2(u2, u3);
                 if (fmax2(u2, u3) <= 0.755591531667601)
                     return u2 < u3 ? tt : -tt;
@@ -15657,8 +15675,8 @@ class BuggyKindermanRamage extends inormal_rng_1.IRNGNormal {
         }
         if (u1 >= 0.911312780288703) {
             for (;;) {
-                u2 = this.rng.unif_rand();
-                u3 = this.rng.unif_rand();
+                u2 = this.Math.random();
+                u3 = this.Math.random();
                 tt = 0.479727404222441 + 1.10547366102207 * fmin2(u2, u3);
                 if (fmax2(u2, u3) <= 0.87283497667179)
                     return u2 < u3 ? tt : -tt;
@@ -15667,8 +15685,8 @@ class BuggyKindermanRamage extends inormal_rng_1.IRNGNormal {
             }
         }
         for (;;) {
-            u2 = this.rng.unif_rand();
-            u3 = this.rng.unif_rand();
+            u2 = this.Math.random();
+            u3 = this.Math.random();
             tt = 0.479727404222441 - 0.59550713801594 * fmin2(u2, u3);
             if (fmax2(u2, u3) <= 0.805577924423817)
                 return u2 < u3 ? tt : -tt;
@@ -15701,15 +15719,15 @@ class KindermanRamage extends inormal_rng_1.IRNGNormal {
         let u3;
         let tt;
         const g = (x) => C1 * exp(-x * x / 2.0) - C2 * (A - x);
-        u1 = this.rng.unif_rand();
+        u1 = this.Math.random();
         if (u1 < 0.884070402298758) {
-            u2 = this.rng.unif_rand();
+            u2 = this.Math.random();
             return A * (1.13113163544418 * u1 + u2 - 1);
         }
         if (u1 >= 0.973310954173898) {
             for (;;) {
-                u2 = this.rng.unif_rand();
-                u3 = this.rng.unif_rand();
+                u2 = this.Math.random();
+                u3 = this.Math.random();
                 tt = A * A - 2 * log(u3);
                 if (u2 * u2 < A * A / tt)
                     return u1 < 0.986655477086949 ? sqrt(tt) : -sqrt(tt);
@@ -15717,8 +15735,8 @@ class KindermanRamage extends inormal_rng_1.IRNGNormal {
         }
         if (u1 >= 0.958720824790463) {
             for (;;) {
-                u2 = this.rng.unif_rand();
-                u3 = this.rng.unif_rand();
+                u2 = this.Math.random();
+                u3 = this.Math.random();
                 tt = A - 0.63083480192196 * fmin2(u2, u3);
                 if (fmax2(u2, u3) <= 0.755591531667601)
                     return u2 < u3 ? tt : -tt;
@@ -15728,8 +15746,8 @@ class KindermanRamage extends inormal_rng_1.IRNGNormal {
         }
         if (u1 >= 0.911312780288703) {
             for (;;) {
-                u2 = this.rng.unif_rand();
-                u3 = this.rng.unif_rand();
+                u2 = this.Math.random();
+                u3 = this.Math.random();
                 tt = 0.479727404222441 + 1.10547366102207 * fmin2(u2, u3);
                 if (fmax2(u2, u3) <= 0.87283497667179)
                     return u2 < u3 ? tt : -tt;
@@ -15738,8 +15756,8 @@ class KindermanRamage extends inormal_rng_1.IRNGNormal {
             }
         }
         for (;;) {
-            u2 = this.rng.unif_rand();
-            u3 = this.rng.unif_rand();
+            u2 = this.Math.random();
+            u3 = this.Math.random();
             tt = 0.479727404222441 - 0.59550713801594 * fmin2(u2, u3);
             if (tt < 0)
                 continue;
@@ -16128,7 +16146,7 @@ function rsignrank(nn, n, rng) {
         let r = 0.0;
         let k = floor(nRound);
         for (let i = 0; i < k;) {
-            r += ++i * floor(rng.unif_rand() + 0.5);
+            r += ++i * floor(Math.random() + 0.5);
         }
         return r;
     });
@@ -16732,7 +16750,7 @@ function rweibull(n, shape, scale = 1, rng) {
                 return 0;
             return _general_1.ML_ERR_return_NAN(printer);
         }
-        return scale * pow(-log(rng.unif_rand()), 1.0 / shape);
+        return scale * pow(-log(Math.random()), 1.0 / shape);
     });
     return r_func_1.possibleScalar(result);
 }
@@ -16924,7 +16942,7 @@ function rwilcox(N, m, n, rng) {
         let x = r_func_1.seq()()(0, k - 1);
         printer_rwilcox(`------v`);
         for (let i = 0; i < n; i++) {
-            let j = floor(k * rng.unif_rand());
+            let j = floor(k * Math.random());
             r += x[j];
             x[j] = x[--k];
             printer_rwilcox('i:%d,\tn:%d\tj:%d\tk:%d\tr:%d\tx:%o', i, n, j, k, x);
@@ -19128,183 +19146,344 @@ function pfilterCalculation (input) {//filter.traj , save.params
   if (input.params === -1 || input.Np === -1 || input.times === -1 || input.dt === -1) {
     throw 'Some required arguments are missed'
   }
-  var toler = 1e-17
+  
   var params = input.params
   var Np = input.Np
-  var tole = input.tol
+  var toler = input.tol
   var maxFail = input.maxFail
   var dt = input.dt
   var dataCases = input.dataCases
   var interpolPop = input.interpolPop
   var interpolBirth = input.interpolBirth
   
-  var [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, I_0, R_0] = params
-  var paramsIC = [S_0, E_0, I_0, R_0, H = 0]
-  var [t0, tdata] = input.times
-  var nvars = paramsIC.length
-  var deltaT = 14 / 365.25
-  var pop , birthrate
-  var timeLen = dataCases.length 
-  var va = 0, seas
-  var particles = [], state =[]
-  var nlost = 0
-  var sampleNum = new Array(Np)
-  var doPredictionVariance = 1, doPredictionMean = 1, doFilterMean = 1 , allFail = 0
-  var predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
-  var predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
-  var condLoglik = Array(timeLen).fill(null).map(() => Array(1))
-  var filterMean = Array(timeLen).fill(null).map(() => Array(nvars))
-  var timeCountData = 0, ws = 0, vsq, sumsq, ess, loglik = 0, lik //condLoglik = []
-  var stateSaved =[]
-  var states = Array(Np).fill(null).map(() => Array(nvars))
-  state = snippet.initz(interpolPop (t0), S_0, E_0, I_0, R_0)
-  // First Np sets
-  for ( i=0; i < Np; i++){
-    particles[i] = [].concat(state)
+  let [R0, amplitude, gamma, mu, sigma, rho, psi, S_0, E_0, I_0, R_0] = params
+let [t0, tdata] = [1940, 1944]
+let nvars = 5
+let deltaT = 14 / 365.25
+let doPredictionVariance = 0, doPredictionMean = 1, doFilterMean = 0 , allFail = 0
+
+let timeLen = dataCases.length 
+let nlost = 0
+
+let rate = [], trans = []
+var particles = new Array(Np).fill(null).map(() => Array(5)),
+ state =[]
+let sampleNum = Array.from(Array(Np).keys())
+let condLoglik = []
+let stateSaved = []
+let temp 
+let timeCountData = 0, ws ,w , vsq, sumsq, ess, loglik = 0, lik 
+
+let predictionMean, predictionVariance, filterMean
+let states = Array(Np).fill(null).map(() => Array(nvars))
+let weights, normalWeights, S, E, I, R, del_t, ST, simulateValue
+let modelCases, likvalue
+var st, births, pop,birthrate
+if (doPredictionMean) {
+  predictionMean = Array(timeLen).fill(null).map(() => Array(nvars))
+}
+if (doPredictionVariance) {
+  predictionVariance = Array(timeLen).fill(null).map(() => Array(nvars))
+}
+if (doFilterMean) {
+  filterMean = Array(timeLen).fill(null).map(() => Array(nvars))
+}
+state = snippet.initz(interpolPop(t0), S_0, E_0, I_0, R_0)
+// First Np sets
+var particles = new Array(Np).fill(null).map(() => [].concat(state));
+temp = new Array(Np).fill(null).map(() => [].concat(state))
+// Time loop
+for (k = t0; k <= Number(dataCases[timeLen - 2][0]) + deltaT / 3 ; k += deltaT){//Number(dataCases[timeLen - 2][0]) + deltaT / 3
+  if ( k > tdata - deltaT && k <= tdata) {
+    k = tdata
   }
-  // time loop
-  for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
-    if ( k > tdata - deltaT && k <= tdata) {
-      k = tdata
-    }
-    var lik = new Array(Np)
-    var weights = [], normalWeights = []
+  weights = []; normalWeights = []
   
-    //****************************************PARTICLE LOOP**************************************
-    for (np = 0; np < Np; np++){ //calc for each particle
-      var trans = new Array(6).fill(0)
-      var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
-        
-      // transitions between classes
-      if (k <= tdata || k > 1965 - deltaT ) {
-        steps = mathLib.numMapSteps(k, k + deltaT, dt)
-      } else {
-        steps = mathLib.numEulerSteps(k, Number(dataCases[timeCountData + 1][0]), dt)
-      }
-      var del_t = (1 / steps )* deltaT 
-      for (let stp = 0; stp < steps; stp++) { // steps in each time interval
-        var st = k + stp * del_t
-        st = st.toFixed(10)
-        var simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], interpolPop(st), interpolBirth(st))
-        S = simulateValue[0]; E = simulateValue[1], I = simulateValue[2], R = simulateValue[3], H = simulateValue[4]
-      }
-      particles[np][0] = S
-      particles[np][1] = E
-      particles[np][2] = I
-      particles[np][3] = R
-      particles[np][4] = H
-     
-      states[np][0] = S || 0
-      states[np][1] = E || 0
-      states[np][2] = I || 0
-      states[np][3] = R || 0
-      states[np][4] = H || 0
-       
-      //***********RESAMPLE*************
-      if (k >= Number(dataCases[0][0])){
-        if (input.runSaveStates){
-          stateSaved.push([S,E,I,R,H])
-        }
-        var modelCases = Number(dataCases[timeCountData][1])
-        var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
-        weights.push(likvalue)
-        particles[np][4] = 0
-      }
-    }////////////////////////////////////////////////////////////////end particle loop///////////////////////////////////////////////////////////////////////////////////////
-    //normalize
-    if (k >= Number(dataCases[0][0])){
-      let sumOfWeights = 0
-      for (let i = 0; i < Np; i++) {
-        sumOfWeights += weights[i]
-      }
-      for (let i = 0; i < Np; i++) {
-        normalWeights[i] = weights[i] / sumOfWeights
-      }
-      // check the weights and compute sum and sum of squares
-      var  w = 0, ws = 0, nlost = 0
-      for (let i = 0; i < Np; i++) {
-        if (weights[i] > toler) {
-          w += weights[i]
-          ws += weights[i] ** 2
-        } else { // this particle is lost
-          weights[i] = 0;
-          nlost++
-        }
-      }
-      if (nlost > maxFail) {
-        throw 'execution terminated. The number of filtering failures exceeds the maximum number of filtering failures allowed. '
-      }
-      if (nlost >= Np) { 
-        allFail = 1 // all particles are lost
-      } else {
-        allFail = 0
-      }
-      
-      if (allFail) {
-        lik = Math.log(toler) // minimum log-likelihood
-        ess = 0  // zero effective sample size
-      } else {
-        ess = w * w / ws  // effective sample size
-        lik = Math.log(w / Np)// mean of weights is likelihood
-      }
-      condLoglik[timeCountData] = [timeCountData + 1, lik]
-      // the total conditional logliklihood in the time process is loglik
-      loglik += lik
-      mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)//;console.log(k, sampleNum)
-      for (np = 0; np < Np; np++) { // copy the particles
-        particles[np] = [].concat(particles[sampleNum[np]])
-        particles[np][nvars - 1] = 0
-      }
-      // Compute outputs
-      for (let j = 0; j< nvars; j++) {
-        // compute prediction mean
-        if (input.runPredMean || input.runPredVar) {
-          var sum = 0, nlost = 0
-          for (let nrow =0; nrow < Np; nrow++){
-            if (states[nrow][j]) {
-              sum += states[nrow][j]
-            } else {
-              nlost++
-            }
-          }
-          sum /= Np
-          predictionMean[timeCountData][j] = sum
-        }  
-        // compute prediction variance
-        if (input.runPredVar) {
-          sumsq = 0
-          for (let nrow = 0; nrow < Np; nrow++){
-            if (states[nrow][j]) {
-              vsq = states[nrow][j] - sum
-              sumsq += Math.pow(vsq, 2)
-            }
-          }
-          predictionVariance[timeCountData][j] = sumsq / (Np - 1) 
-        }
-        //  compute filter mean
-        if (input.runFilterMean) {
-          if (allFail) {   // unweighted average
-            ws = 0
-            for (let nrow =0; nrow < Np; nrow++){
-              if (states[nrow][j]) {
-                ws += states[nrow][j]
-              }
-            } 
-            filterMean[timeCountData][j] = ws / Np//;console.log(ws / Np)
-          } else {      // weighted average
-            ws = 0
-            for (let nrow =0; nrow < Np; nrow++){
-              if (states[nrow][j]) {
-                ws += states[nrow][j] * weights[nrow]
-              }
-            }
-            filterMean[timeCountData][j] = ws / w
-          }
-        }
-      }
-      timeCountData++ 
+  if ( k > t0) {
+    for (np = 0; np < Np; np++) { // copy the particles
+      temp[np] = [].concat(particles[sampleNum[np]])
+
+      temp[np][nvars - 1] = 0
     }
-  }//endTime
+  } 
+  
+  // if (k <= tdata || k > Number(dataCases[dataCases.length - 1])) {
+      steps = mathLib.numMapSteps(k, k + deltaT, dt)
+  // } else {
+  //     steps = mathLib.numEulerSteps(k, Number(dataCases[timeCountData + 1][0]), dt)
+  // }
+    del_t = (1 / steps )* deltaT
+
+  for (let stp = 0; stp < steps; stp++) { // steps in each time interval
+    st = k + stp * del_t
+    pop = interpolPop(st)
+    birthrate = interpolBirth(st)
+    births = mathLib.rpois(birthrate * (1- snippet.rprocessVaccine(st)) * del_t )
+      for (np = 0; np < Np; np++){ //calc for each particle
+        trans = []
+        S = temp[np][0]; E = temp[np][1]; I = temp[np][2]; R = temp[np][3]; H = temp[np][4]
+        simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], pop, births)
+        temp[np][0] = simulateValue[0]; temp[np][1] = simulateValue[1]; temp[np][2] = simulateValue[2]; temp[np][3] = simulateValue[3]; temp[np][4] = simulateValue[4]
+      }
+    }
+    for (np = 0; np < Np; np++){ 
+      particles[np][0] = temp[np][0]
+      particles[np][1] = temp[np][1]
+      particles[np][2] = temp[np][2]
+      particles[np][3] = temp[np][3]
+      particles[np][4] = temp[np][4]
+      H = temp[np][4]
+  //***********weight*************
+      if (k >= Number(dataCases[0][0])){
+        if (stateSaved) {
+          stateSaved.push(particles[np]) //[S,E,I,R,H])
+        }
+        modelCases = Number(dataCases[timeCountData][1])
+        likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
+        weights.push(likvalue)           
+      }
+    }
+   
+  
+  //normalize
+  if (k >= Number(dataCases[0][0])){
+    let sumOfWeights = 0
+    for (let i = 0; i < Np; i++) {
+      sumOfWeights += weights[i]
+    }
+    for (let i = 0; i < Np; i++) {
+      normalWeights[i] = weights[i] / sumOfWeights
+    }
+    // check the weights and compute sum and sum of squares
+    w = 0, ws = 0, nlost = 0
+    for (let i = 0; i < Np; i++) {
+      if (weights[i] > toler) {
+        w += weights[i]
+        ws += weights[i] ** 2
+      } else { // this particle is lost
+        weights[i] = 0;
+        nlost++
+      }
+    }
+    if (nlost > maxFail) {
+      throw 'execution terminated. The number of filtering failures exceeds the maximum number of filtering failures allowed. '
+    }
+    if (nlost >= Np) { 
+      allFail = 1 // all particles are lost
+    } else {
+      allFail = 0
+    }
+    
+    if (allFail) {
+      lik = Math.log(toler) // minimum log-likelihood
+      ess = 0  // zero effective sample size
+    } else {
+      ess = w * w / ws  // effective sample size
+      lik = Math.log(w / Np)// mean of weights is likelihood
+    }
+    condLoglik[timeCountData] = [timeCountData + 1, lik]
+    // the total conditional logliklihood in the time process is loglik
+    loglik += lik
+    mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)
+    
+    // Compute outputs
+    for (let j = 0; j< nvars; j++) {
+      // compute prediction mean
+      if (doPredictionMean || doPredictionVariance) {
+        let sum = 0, nlost = 0
+        for (let nrow =0; nrow < Np; nrow++){
+          if (particles[nrow][j]) {
+            sum += particles[nrow][j]
+          } else {
+            nlost++
+          }
+        }
+        sum /= Np
+        predictionMean[timeCountData][j] = sum
+      }  
+      // compute prediction variance
+      if (doPredictionVariance) {
+        sumsq = 0
+        for (let nrow = 0; nrow < Np; nrow++){
+          if (particles[nrow][j]) {
+            vsq = particles[nrow][j] - sum
+            sumsq += Math.pow(vsq, 2)
+          }
+        }
+        predictionVariance[timeCountData][j] = sumsq / (Np - 1) 
+      }
+      //  compute filter mean
+      if (doFilterMean) {
+        if (allFail) {   // unweighted average
+          ws = 0
+          for (let nrow =0; nrow < Np; nrow++){
+            if (particles[nrow][j]) {
+              ws += particles[nrow][j]
+            }
+          } 
+          filterMean[timeCountData][j] = ws / Np//;console.log(ws / Np)
+        } else {      // weighted average
+          ws = 0
+          for (let nrow =0; nrow < Np; nrow++){
+            if (particles[nrow][j]) {
+              ws += particles[nrow][j] * weights[nrow]
+            }
+          }
+          filterMean[timeCountData][j] = ws / w
+        }
+      }
+    }
+    }
+    timeCountData++
+}//endTime
+
+  // // First Np sets
+  // for ( i=0; i < Np; i++){
+  //   particles[i] = [].concat(state)
+  // }
+  // // time loop
+  // for (k = t0  ; k < Number(dataCases[dataCases.length - 2][0]) + deltaT / 3; k += deltaT){//Number(dataCases[dataCases.length - 2][0]) + deltaT / 3
+  //   if ( k > tdata - deltaT && k <= tdata) {
+  //     k = tdata
+  //   }
+  //   var lik = new Array(Np)
+  //   var weights = [], normalWeights = []
+  
+  //   //****************************************PARTICLE LOOP**************************************
+  //   for (np = 0; np < Np; np++){ //calc for each particle
+  //     var trans = new Array(6).fill(0)
+  //     var S = particles[np][0], E = particles[np][1], I = particles[np][2], R = particles[np][3], H = particles[np][4]
+        
+  //     // transitions between classes
+  //     if (k <= tdata || k > 1965 - deltaT ) {
+  //       steps = mathLib.numMapSteps(k, k + deltaT, dt)
+  //     } else {
+  //       steps = mathLib.numEulerSteps(k, Number(dataCases[timeCountData + 1][0]), dt)
+  //     }
+  //     var del_t = (1 / steps )* deltaT 
+  //     for (let stp = 0; stp < steps; stp++) { // steps in each time interval
+  //       var st = k + stp * del_t
+  //       st = st.toFixed(10)
+  //       var simulateValue = snippet.rprocess(params, st, del_t, [S,E,I,R,H], interpolPop(st), interpolBirth(st))
+  //       S = simulateValue[0]; E = simulateValue[1], I = simulateValue[2], R = simulateValue[3], H = simulateValue[4]
+  //     }
+  //     particles[np][0] = S
+  //     particles[np][1] = E
+  //     particles[np][2] = I
+  //     particles[np][3] = R
+  //     particles[np][4] = H
+     
+  //     states[np][0] = S || 0
+  //     states[np][1] = E || 0
+  //     states[np][2] = I || 0
+  //     states[np][3] = R || 0
+  //     states[np][4] = H || 0
+       
+  //     //***********RESAMPLE*************
+  //     if (k >= Number(dataCases[0][0])){
+  //       if (input.runSaveStates){
+  //         stateSaved.push([S,E,I,R,H])
+  //       }
+  //       var modelCases = Number(dataCases[timeCountData][1])
+  //       var likvalue = snippet.dmeasure(rho, psi, H, modelCases, giveLog = 0)
+  //       weights.push(likvalue)
+  //       particles[np][4] = 0
+  //     }
+  //   }////////////////////////////////////////////////////////////////end particle loop///////////////////////////////////////////////////////////////////////////////////////
+  //   //normalize
+  //   if (k >= Number(dataCases[0][0])){
+  //     let sumOfWeights = 0
+  //     for (let i = 0; i < Np; i++) {
+  //       sumOfWeights += weights[i]
+  //     }
+  //     for (let i = 0; i < Np; i++) {
+  //       normalWeights[i] = weights[i] / sumOfWeights
+  //     }
+  //     // check the weights and compute sum and sum of squares
+  //     var  w = 0, ws = 0, nlost = 0
+  //     for (let i = 0; i < Np; i++) {
+  //       if (weights[i] > toler) {
+  //         w += weights[i]
+  //         ws += weights[i] ** 2
+  //       } else { // this particle is lost
+  //         weights[i] = 0;
+  //         nlost++
+  //       }
+  //     }
+  //     if (nlost > maxFail) {
+  //       throw 'execution terminated. The number of filtering failures exceeds the maximum number of filtering failures allowed. '
+  //     }
+  //     if (nlost >= Np) { 
+  //       allFail = 1 // all particles are lost
+  //     } else {
+  //       allFail = 0
+  //     }
+      
+  //     if (allFail) {
+  //       lik = Math.log(toler) // minimum log-likelihood
+  //       ess = 0  // zero effective sample size
+  //     } else {
+  //       ess = w * w / ws  // effective sample size
+  //       lik = Math.log(w / Np)// mean of weights is likelihood
+  //     }
+  //     condLoglik[timeCountData] = [timeCountData + 1, lik]
+  //     // the total conditional logliklihood in the time process is loglik
+  //     loglik += lik
+  //     mathLib.nosortResamp(Np, normalWeights, Np, sampleNum, 0)//;console.log(k, sampleNum)
+  //     for (np = 0; np < Np; np++) { // copy the particles
+  //       particles[np] = [].concat(particles[sampleNum[np]])
+  //       particles[np][nvars - 1] = 0
+  //     }
+  //     // Compute outputs
+  //     for (let j = 0; j< nvars; j++) {
+  //       // compute prediction mean
+  //       if (input.runPredMean || input.runPredVar) {
+  //         var sum = 0, nlost = 0
+  //         for (let nrow =0; nrow < Np; nrow++){
+  //           if (states[nrow][j]) {
+  //             sum += states[nrow][j]
+  //           } else {
+  //             nlost++
+  //           }
+  //         }
+  //         sum /= Np
+  //         predictionMean[timeCountData][j] = sum
+  //       }  
+  //       // compute prediction variance
+  //       if (input.runPredVar) {
+  //         sumsq = 0
+  //         for (let nrow = 0; nrow < Np; nrow++){
+  //           if (states[nrow][j]) {
+  //             vsq = states[nrow][j] - sum
+  //             sumsq += Math.pow(vsq, 2)
+  //           }
+  //         }
+  //         predictionVariance[timeCountData][j] = sumsq / (Np - 1) 
+  //       }
+  //       //  compute filter mean
+  //       if (input.runFilterMean) {
+  //         if (allFail) {   // unweighted average
+  //           ws = 0
+  //           for (let nrow =0; nrow < Np; nrow++){
+  //             if (states[nrow][j]) {
+  //               ws += states[nrow][j]
+  //             }
+  //           } 
+  //           filterMean[timeCountData][j] = ws / Np//;console.log(ws / Np)
+  //         } else {      // weighted average
+  //           ws = 0
+  //           for (let nrow =0; nrow < Np; nrow++){
+  //             if (states[nrow][j]) {
+  //               ws += states[nrow][j] * weights[nrow]
+  //             }
+  //           }
+  //           filterMean[timeCountData][j] = ws / w
+  //         }
+  //       }
+  //     }
+  //     timeCountData++ 
+  //   }
+  // }//endTime
   console.log('loglike=',loglik)
   console.log('runing time=', new Date() - START)
   activateDownload ()
