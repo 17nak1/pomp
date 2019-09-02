@@ -3,24 +3,7 @@ var mathLib = {}
 let exp = 2.718281828
 let pi = 3.141592654
 var erf = require('math-erf')
-
-var libUnif = require('lib-r-math.js');
-const {
-    R: { numberPrecision },
-    rng: { MersenneTwister, timeseed }
-} = libUnif
-var U = new MersenneTwister(0)
- // console.log(U.unif_rand());//0.8966972001362592
-
-const libR = require('lib-r-math.js')
-//* Set the seed for rbinom-In R: RNGkind("Knuth-TAOCP-2002");set.seed(1234)
-const {
-  Binomial,
-  rng: { KnuthTAOCP2002 }
-} = libR
-const kn = new KnuthTAOCP2002(1234)
-const { rnorm, rbinom } = Binomial(kn)
-// console.log(rbinom(2,40,.5))
+var rbinom = require('./rbinom')
 
 mathLib.pnorm = function (x, mu = 0, sd = 1, lower_tail = true, give_log = false) {
   if (sd < 0) {
@@ -99,13 +82,13 @@ mathLib.reulermultinom = function (m = 1, size, rateAdd, dt, transAdd, rate, tra
     p += rate[k + rateAdd]// total event rate
   }
   if (p > 0) {
-    size = rbinom(1, size, 1 - Math.exp(-p * dt))// total number of events
+    size = rbinom.rbinomOne(size, 1 - Math.exp(-p * dt))// total number of events
     if (!(isFinite(size)))
       throw 'result of binomial draw is not finite.'
     m -= 1
     for (k = 0; k < m; k++) {
       if (rate[k + rateAdd] > p) p = rate[k + rateAdd]
-      trans[k + transAdd] = ((size > 0) && (p > 0)) ? rbinom(1, size, rate[k + rateAdd] / p) : 0
+      trans[k + transAdd] = ((size > 0) && (p > 0)) ? rbinom.rbinomOne(size, rate[k + rateAdd] / p) : 0
       if (!(isFinite(size) && isFinite(p) && isFinite(rate[k + rateAdd]) && isFinite(trans[k + transAdd]))) {
         throw 'result of binomial draw is not finite.'
       }
@@ -179,8 +162,3 @@ mathLib.interpolator = function (points) {
 }
 
 module.exports = mathLib;
-// var START = new Date()
-// for(i=1;i<1000000;i++){
-//   rbinom(1,i,.2)
-// }
-// console.log(new Date() - START)

@@ -1,32 +1,10 @@
-/*
- * Particle filter
- * A plain vanilla sequential Monte Carlo (particle filter) algorithm.
- * Resampling is performed at each observation.
- * @param Np the number of particles to use.
- * @param tol positive numeric scalar.
- * @param max.fail integer; the maximum number of filtering failures allowed.
- * @param pred.mean logical; if \code{TRUE}, the prediction means are calculated for the state variables and parameters.
- * @param pred.var logical; if \code{TRUE}, the prediction variances are calculated for the state variables and parameters.
- * @param filter.mean logical; if \code{TRUE}, the filtering means are calculated for the state variables and parameters.
- * @param filter.traj logical; if \code{TRUE}, a filtered trajectory is returned for the state variables and parameters.
- * @param save.states logical.
- *  If \code{save.states=TRUE}, the state-vector for each particle at each time is saved.
- * @references
-    pfilter.R by Aaron A. King. https://github.com/kingaa/pomp/blob/abc552b335319bd36b21d3313305c89e97f48f68/R/pfilter.R
-    M. S. Arulampalam, S. Maskell, N. Gordon, & T. Clapp.
-    A Tutorial on Particle Filters for Online Nonlinear, Non-Gaussian Bayesian Tracking.
-    IEEE Trans. Sig. Proc. 50:174--188, 2002.
- */
-//conditional log liklihood(time) =log(sum(w_i, i in 0:Np) / Np)
 var START = new Date()
-fs = require('fs')
+
 let fmin = require ('fmin')
 let mathLib = require('./mathLib')
 let snippet = require('./modelSnippet.js')
-var linearInterpolator = require('linear-interpolator/node_main')
+let simulator = require ('./simulator.js')
 
-
-//////////////////////////////////////////////////////////////////////////////////////* main function//////////////////////////////////////////////////////////////////////
 function pfilterCalculation (input) {//filter.traj , save.params
   // {params:inputArr, Np:100,times:times, dt:1 / 365.25,runPredMean:1,  dataCases:dataCases, interpolPop:interpolPopulation, interpolBirth:interpolBirth}
   let START =new Date()
@@ -231,9 +209,8 @@ for (k = t0; k <= Number(dataCases[timeLen - 2][0]) + deltaT / 3 ; k += deltaT){
     timeCountData++
 }//endTime
 
-  
   console.log('loglike=',loglik)
-  console.log('runing time=', new Date() - START)
+  console.log('runing time=', (new Date() - START) / 1000)
   activateDownload ()
    if (input.runPredMean) {
     return predictionMean
@@ -256,9 +233,3 @@ for (k = t0; k <= Number(dataCases[timeLen - 2][0]) + deltaT / 3 ; k += deltaT){
 module.exports = {
   pfilterCalculation
 }
-
-
-    
-      
-
-

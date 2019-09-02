@@ -1,3 +1,4 @@
+
 var trans = new Array(6).fill(3)
 var rate = new Array(6)
 fs = require('fs')
@@ -5,17 +6,8 @@ let fmin = require ('fmin')
 var mathLib = require('./mathLib')
 var linearInterpolator = require('linear-interpolator/node_main')
 const libR = require('lib-r-math.js')
-const {
-  Poisson,
-  rng: { MersenneTwister },
-  rng: { normal: { Inversion } }
-} = libR
-const mt = new MersenneTwister(0)// need reference so we "reset" PRNG
-const { rpois } = Poisson(new Inversion(mt))
-mt.init(1234)
+let rpois = require('./rpois')
 
-//* Set the seed for rnorm-In R:RNGkind("L'Ecuyer-CMRG", normal.kind="Box-Muller");set.seed(1234) 
-//or normal.kind="Box-Muller" or "BuggyKindermanRamage" or "Inversion" or "KindermanRamage"
 var {
   Normal,
   rng: {

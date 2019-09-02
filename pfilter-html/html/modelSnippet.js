@@ -2,7 +2,7 @@
 snippet = {}
 let mathLib = require('./mathLib')
 //* Set the seed for rnorm-In R:RNGkind("L'Ecuyer-CMRG", normal.kind="Box-Muller");set.seed(1234) 
-const libR = require('lib-r-math.js')
+// const libR = require('lib-r-math.js')
 // const {
 //   Poisson,
 //   rng: { MersenneTwister },

@@ -127,7 +127,7 @@ mathLib.rpois = function (lambda = 1) {
   return k-1
 }
 
-<<<<<<< HEAD
+
 mathLib.interpolator = function (points) {
   var first, n = points.length - 1,
     interpolated,
@@ -180,8 +180,5 @@ mathLib.interpolator = function (points) {
 }
 
 module.exports = mathLib;
-=======
-module.exports = mathLib;
 
->>>>>>> c3571c4813782fbfbaea9b943de00e4bd1afa5dc
 
