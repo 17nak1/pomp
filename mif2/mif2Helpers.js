@@ -1,5 +1,13 @@
 
-
+/**
+ * Calculates alpha and gamma based on cooling type.
+ * @param {string} type 
+ * @param {number} fraction 
+ * @param {number} ntimes
+ * @returns {object}
+ *  @params {number} alpha 
+ *  @params {number} gamma 
+ */
 const cooling = function(type, fraction, ntimes) {
   switch(type){
   case "geometric":
@@ -26,12 +34,13 @@ const cooling = function(type, fraction, ntimes) {
 
 /**
  * Rescale the parameters.
- * .param {object} pomp 
- * .param {array} params 
- * .param {string} dir 
+ * @param {object} pomp 
+ * @param {array} params  An array of objects of parameters.
+ * @param {string} dir    "fromEstimationScale"/ "toEstimationScale"
+ * @returns {array} 
+ *  An array of objects of transformed parameters
  */
 const partrans = function (pomp, params, dir = ["fromEstimationScale","toEstimationScale"]) {
-  
   let transParam = [].concat(params);
   switch(dir){
   case "fromEstimationScale":
@@ -50,26 +59,21 @@ const partrans = function (pomp, params, dir = ["fromEstimationScale","toEstimat
   if (transParam.length === 1) return [...transParam];
   return transParam;
 }
-
+/**
+ * 
+ * @param {object}  POMP 
+ * @param {boolean} transform    If pomp.params need to be transformed
+ * @returns {object}
+ *  pomp.params
+ */
 const coef = function (object, transform = false) {
   if (Object.keys(object.params).length > 0) {
     if (transform) {
       params = partrans(object, [object.params], dir="fromEstimationScale");
     } else {
       params = [object.params];
-    }
-    // if (typeof pars === undefined)
-    //   pars = names(params)
-    // else {
-      // excl = setdiff(pars,names(params))
-      // if (excl.length >0) {
-      //   stop("in ",sQuote("coef"),": name(s) ",
-      //     paste(sQuote(excl),collapse=","),
-      //     " correspond to no parameter(s)",
-      //     call.=FALSE)
-      // }
-  
-  return params[0];
+    }    
+    return params[0];
   } else {
     return 0;
   }

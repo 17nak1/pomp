@@ -15,18 +15,32 @@ const { cooling, partrans, coef } = require("./mif2Helpers.js");
  * The algorithm is presented and justified in Ionides et al. (2015).
  * 
  * @param {object} args 
- * @param {object} args.object
- * @param {object} args.Nmif
- * @param {object} args.start
- * @param {object} args.transform
- * @param {object} args.rw_sd
- * @param {object} args.Np
- * @param {object} args.coolingType
- * @param {object} args.tol
- * @param {object} args.maxFail
- * @param {object} args._paramMatrix
- * @param {object} args._ndone
- * @param {object} args._indices
+ * @param {object} args.object          POMP
+ * @param {number} args.Nmif            Number of of filtering iterations.
+ * @param {array} args.start            Input parameters.
+ * @param {boolean} args.transform      If parmeters need to transform.
+ * @param {object} args.rw_sd           Specification of the magnitude of the random-walk perturbations that will be applied to some or all model parameters.
+ * @param {number} args.Np              The number of particles to use.
+ * @param {number} args.coolingFraction Cooling Rate
+ * @param {string} args.coolingType     specifications for the cooling schedule,
+ *                                       i.e., the manner with which the intensity of the parameter perturbations is reduced with successive filtering iterations.
+ 
+ * @param {number} args.tol             Tolerance
+ * @param {number} args.maxFail         Maximum number of allowed fail.
+ * @param {array} args._paramMatrix     An array of Np arrays of args.start.
+ * @param {number} args._ndone
+ * @param {number} args._indices
+ * 
+ * @returns {object}
+ *  @param {number} logLik         The estimated log likelihood.
+ *  @param {array} cond.logLik     The estimated conditional log likelihood.
+ *  @param {array} convRec         The estimated parameters and log likelihood in each mif iteration.
+ *  @param {array} paramMatrix     An array of Np arrays of final parameters.
+ *  @param {number} effSamplesize  Effective sample size.
+ *  @param {number} indices 
+ *  @param {number} Np 
+ *  @param {number} tol 
+ *  @param {number} nfail 
  */
 exports.mif2Internal = function (args) {
   let pomp = args.object;
@@ -48,7 +62,6 @@ exports.mif2Internal = function (args) {
   Nmif = parseInt(Nmif);
   if (_paramMatrix === null) {
     if (!start) start = coef(pomp);
-    // if (Object.getPrototypeOf(start) == Object.prototype) start = Object.values(start);
   } else { 
     throw new Error("Not translated, if paramMatrix is supplied");  
   }
@@ -117,7 +130,6 @@ exports.mif2Internal = function (args) {
   if (transform)
     pfp.paramMatrix = partrans(pomp,paramMatrix,dir="fromEstimationScale");
   
-  
   return{
     ...pfp,
     Nmif: Nmif,
@@ -128,7 +140,20 @@ exports.mif2Internal = function (args) {
     convRec: convRec
   }
 }
-
+/**
+ * Mif version of particle filter algorithm.
+ * @param {object} object              POMP
+ * @param {object} args.params         Input parameters.
+ * @param {number} args.Np             The number of particles to use.
+ * @param {number} mifiter 
+ * @param {function} coolingFn 
+ * @param {array} rw_sd                Array of objects of the parameters that has random walk. 
+ * @param {number} args.tol            Tolerance. 
+ * @param {number} maxFail 
+ * @param {boolean} transform 
+ * @param {number} _indices 
+ * @returns {object}
+ */
 const mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd,
   tol = 1e-17, maxFail = Inf, transform, _indices = 0)
 {
