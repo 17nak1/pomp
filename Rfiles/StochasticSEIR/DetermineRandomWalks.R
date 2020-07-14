@@ -1,9 +1,0 @@
-rw <- rw.sd (R0=ifelse(time<1944,0,rw_size),
-             amplitude=ifelse(time<1944,0,rw_size),
-             mu=ifelse(time<1944,0,rw_size),
-             rho=ifelse(time<1944,0,rw_size),
-             psi=ifelse(time<1944,0,rw_size),
-             S_0=ifelse(time<1944,0,rw_size),
-             E_0=ifelse(time<1944,0,rw_size),
-             I_0=ifelse(time<1944,0,rw_size),
-             R_0=ifelse(time<1944,0,rw_size))
