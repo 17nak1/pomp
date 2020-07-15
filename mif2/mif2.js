@@ -49,7 +49,7 @@ const { cooling, partrans, coef } = require("./mif2Helpers.js");
  *  @param {number} tol 
  *  @param {number} nfail 
  */
-exports.mif2Internal = function (args) {
+exports.mif2 = function (args) {
   let pomp = args.object;
   let Nmif = args.Nmif;
   let start = args.start;
