@@ -8,7 +8,7 @@
 
 snippet = {}
 let mathLib = require('./mathLib');
-let rpois = require('./rpois');
+let { rpois } = require('./rpois');
 
 snippet.rprocess = function (states, params, t, dt, covar) {
   
@@ -50,7 +50,7 @@ snippet.rprocess = function (states, params, t, dt, covar) {
   rate[4] = gamma          // recovery
   rate[5] = mu             // natural I death 
    
-  let births = rpois.rpoisOne(birthrate * (1 - va) * dt )// Poisson births
+  let births = rpois(birthrate * (1 - va) * dt )// Poisson births
   mathLib.reulermultinom(2, Math.round(S), 0, dt, 0, rate, trans)
   mathLib.reulermultinom(2, Math.round(E), 2, dt, 2, rate, trans)
   mathLib.reulermultinom(2, Math.round(I), 4, dt, 4, rate, trans)

@@ -169,7 +169,7 @@ const mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd,
   let loglik = new Array(ntimes);
   let effSampleSize = Number(ntimes);
   let nfail = 0;
-  let alpha, pmag;
+  let alpha;
   let x = [];
 
   for (let nt = 0; nt < ntimes; nt++) {//ntimes
@@ -288,7 +288,6 @@ const mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd,
     nfail: Number(nfail),
     loglik: loglik.reduce((a,b) => a+b, 0)
   }
-
 }
 
 

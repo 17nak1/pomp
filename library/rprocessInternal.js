@@ -1,10 +1,15 @@
-const { euler_model_simulator } = require("./euler.js")
-exports.rprocessInternal  = function (object, xstart, times, params, offset = 0, args) {
-  let rv = do_rprocess(object, xstart, times, params, offset, args);
-  return rv;
-}
-
-const do_rprocess = function (object, xstart, times, params, offset, args) {
+const { euler_model_simulator } = require("./euler.js");
+/**
+ * Simultes values of states at time t_{n+1}.
+ * @param {object} object       POMP
+ * @param {array} xstart        Array of objects of states.
+ * @param {array} times         Array of [t_n, t_{n+1}].
+ * @param {array} params        Array of objects of parameters.
+ * @param {number} offset 
+ * @returns {array}
+ *  Array of 'Np' objects of states at time t_{n+1}.
+ */
+exports.rprocessInternal  = function (object, xstart, times, params, offset = 0) {
   let ntimes = times.length;
   if (ntimes < 2) {
     throw new Error("in 'rprocess': length(times) < 2: with no transitions, there is no work to do.");
@@ -13,9 +18,8 @@ const do_rprocess = function (object, xstart, times, params, offset, args) {
   let off = Number(offset) ;
   if ((off < 0)||(off >= ntimes))
     throw new Error(`illegal 'offset' value ${off}`);
-  let nvars = xstart[0].length;
-  let nrepsx = xstart.length;  
-  let npars = params[0].length;
+  
+  let nrepsx = xstart.length;  //Np
   let nreps = params.length;
 
   if (nrepsx > nreps) {		// more ICs than parameters
@@ -23,8 +27,8 @@ const do_rprocess = function (object, xstart, times, params, offset, args) {
   } else if (nrepsx < nreps) {	// more parameters than ICs
     throw new Error("More parameters than ICs is not translated!")
   }
-  // extract the process function. NOTE: only discrete-time translated
-  let type = object.rprocess.type === "euler_sim" ? 3: 0;//TODO: type = *(INTEGER(GET_SLOT(rproc,install("type"))));
+  // extract the process function. NOTE: only Euler translated (type = 3).
+  let type = object.rprocess.type === "euler_sim" ? 3: 0;
   let X;
   
   switch (type) {

@@ -1,3 +1,4 @@
+
 let pomp = class Pomp {
     constructor(args) {
         if(args == undefined){

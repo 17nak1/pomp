@@ -1,20 +1,35 @@
-// examines weights for filtering failure.
-// computes conditional log likelihood and effective sample size.
-// computes (if desired) prediction mean, prediction variance, filtering mean.
-// it is assumed that ncol(x) == ncol(params).
-// weights are used in filtering mean computation.
-// if length(weights) == 1, an unweighted average is computed.
-// tracks ancestry of particles if desired.
-// returns all of the above in a named list.
 
-// predmean: calculate prediction means?
-// predvar: calculate prediction variances?
-// filtmean: calculate filtering means?
-// trackancestry: track ancestry?
-// onepar: are all cols of 'params' the same?
-const mathLib = require("./mathLib.js")
+const mathLib = require("./mathLib.js");
+/**
+ * Resamples and examines weights for filtering failure.
+ * it is assumed that ncol(x) == ncol(params).
+ * weights are used in filtering mean computation.
+ * if length(weights) == 1, an unweighted average is computed.
+ * 
+ * @param {array} x                 Array of objects of states.
+ * @param {array} params            Array of objects of parameters.
+ * @param {number} Np               Number of iterations.
+ * @param {object, number} rw_sd    Random walk. If it is zero, there is no rw for resampling. 
+ * @param {boolean} predmean        If calculate prediction means?
+ * @param {boolean} predvar         If calculate prediction variances?
+ * @param {boolean} filtmean        If calculate filtering means?
+ * @param {boolean} trackancestry   If track ancestry?
+ * @param {boolean} onepar          If are all cols of 'params' the same?
+ * @param {array} weights           Array of Np weights.
+ * @param {number} toler            Tolerance.
+ * @returns {object}
+ *  @params {number} fail           Number of failed particles.
+ *  @params {array} loglik          total log liklihood
+ *  @params {array} ess             Effective sample size
+ *  @params {array} states          States
+ *  @params {array} params          Parameters
+ *  @params {array} pm              Prediction mean
+ *  @params {array} pv              Prediction variance
+ *  @params {array} fm              Filtering mean
+ *  @params {array} ancestry        Ancestry of particles
+ */
 exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar,
-  filtmean, trackancestry, onepar, weights, toler, param_rwIndex)
+  filtmean, trackancestry, onepar, weights, toler)
 {
   let nvars = Object.keys(x[0]).length;
   let nreps = x.length;
@@ -23,14 +38,9 @@ exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar
 
   if (nreps % params.length != 0)
     throw new Error("In pfilter_computations: ncol('states') should be a multiple of ncol('params')"); // # nocov
-  let nrw = Array.isArray(rw_sd) ? rw_sd.length : 0;	     // number of parameters that are variable
-  let do_rw = nrw > 0;                                     // do random walk in parameters?
-  let rw_names = null;	                                   
-  // if (do_rw) {
-  //   // names of parameters undergoing random walk
-  //   rw_names = rw_sd_name;
-  // }
-  let do_par_resamp = !onepar || do_rw; // should we do parameter resampling?
+  let nrw = Array.isArray(rw_sd) ? rw_sd.length : 0;	  // number of parameters that are variable
+  let do_rw = nrw > 0;                                  // do random walk in parameters?
+  let do_par_resamp = !onepar || do_rw;                 // should we do parameter resampling?
 
   if (do_par_resamp) {
     if (nparreps !== nreps)
@@ -64,11 +74,11 @@ exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar
   }
   
   fail = all_fail;
-  let pidx;                       // indices of parameters undergoing random walk
+  let pidx;                       // Names of parameters undergoing random walk
   let xp, lv;
   
   if (do_rw) {
-    pidx = param_rwIndex;
+    pidx = Object.keys(rw_sd);
     xp = params;
     lv = nvars + nrw;
   } else {
@@ -95,10 +105,6 @@ exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar
     }
   }
 
-  // if (trackancestry) {
-  //   PROTECT(anc = NEW_INTEGER(np)); nprotect++;
-  //   xanc = INTEGER(anc);
-  // }
   let sum = 0;
   let nvarName = Object.keys(x[0]);
   for (let j = 0; j < nvars; j++) {	// state variables
@@ -146,6 +152,7 @@ exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar
   let offset;
   
   if (do_rw) {
+    console.error("Non zero rw_sd is not translated")
     for (let j = 0; j < nrw; j++) {
       offset = pidx[j];		// position of the parameter
 

@@ -1,18 +1,23 @@
-const mathLib = require("./mathLib");
 
-exports.euler_model_simulator  = function(func, xstart, times, params, deltat,
-   method, object)
+/**
+ * 
+ * @param {*} func 
+ * @param {*} xstart 
+ * @param {*} times 
+ * @param {*} params 
+ * @param {*} deltat 
+ * @param {*} method 
+ * @param {*} object 
+ */
+exports.euler_model_simulator  = function(func, xstart, times, params, deltat, method, object)
 {
-  let zeronames = object.zeronames;
-  let statenames = object.statenames; 
+  let zeronames = object.zeronames; 
   if (deltat <= 0)
     throw new Error("In euler.js: 'delta.t' should be a positive number");
   let nvars = Object.keys(xstart[0]).length;
   let nreps = xstart.length;
   let npars = Object.keys(params[0]).length;
   let ntimes = times.length;
-
-  let zidx = mathLib.index(statenames, zeronames);
 
   let t = times[0];
   let xt = xstart;
@@ -76,15 +81,15 @@ const numEulerSteps = function (t1, t2, dt) {
   let DOUBLE_EPS = 10e-8
   let tol = Math.sqrt(DOUBLE_EPS)
   let nstep;
-  // nstep will be the number of Euler steps to take in going from t1 to t2.
-  // note also that the stepsize changes.
-  // this choice is meant to be conservative
-  // (i.e., so that the actual dt does not exceed the specified dt
-  // by more than the relative tolerance 'tol')
-  // and to counteract roundoff error.
-  // It seems to work well, but is not guaranteed:
-  // suggestions would be appreciated.
-
+  /* nstep will be the number of Euler steps to take in going from t1 to t2.
+  * note also that the stepsize changes.
+  * this choice is meant to be conservative
+  * (i.e., so that the actual dt does not exceed the specified dt
+  * by more than the relative tolerance 'tol')
+  * and to counteract roundoff error.
+  * It seems to work well, but is not guaranteed:
+  * suggestions would be appreciated.
+  */
   if (t1 >= t2) {
     dt = 0;
     nstep = 0;

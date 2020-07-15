@@ -23,7 +23,7 @@ const { statenames } = require("../library/modelSnippet.js");
  * 
  * @returns {object}
  *  @param {number} logLik         The estimated log likelihood.
- *  @param {array} cond.logLik     The estimated conditional log likelihood.
+ *  @param {array} condLogLik      The estimated conditional log likelihood.
  *  @param {array} effSampleSize   The (time-dependent) estimated effective sample size.
  *  @param {array} pred.mean       The mean of the approximate prediction distribution.
  *  @param {array} pred.var        The variance of the approximate prediction distribution.
