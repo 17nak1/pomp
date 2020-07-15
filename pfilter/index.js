@@ -1,8 +1,8 @@
 /**
- * 
+ * Example of using pfilter.js
  *
  */
-// let mif2 = require('./pfilter.js');
+
 let snippet = require('../library/modelSnippet.js');
 let fs = require('fs');
 let { pfilter } = require('./pfilter.js');
@@ -14,7 +14,7 @@ let dataCovar = [];
 let dataCovarTimes = [];
 let currentParams = []; 
 let rootDir = '..'
-// 1st data set; read all rows and delete last one if it is ['']
+// 1st data set
 let temp, file;
 file = fs.readFileSync(rootDir+'/samples/London_covar.csv').toString();
 let lines = file.split(/\r\n|\n/);

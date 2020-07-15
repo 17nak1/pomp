@@ -129,10 +129,4 @@ t = new Date()
 let pf = pfilter({object: mypomp, params: currentParams, Np: 200, filterMean: true, predMean: true, maxFail: 3000})
 console.log(new Date() - t, pf.loglik)
 
-let createCsvWriter = require('csv-writer').createArrayCsvWriter;
-let csvWriter = createCsvWriter({
-  header: [],
-  path: rootDir+'/samples/predmean.csv',
-})
-csvWriter.writeRecords( pf.predMean)
   

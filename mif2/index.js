@@ -2,7 +2,7 @@
  * 
  *
  */
-const mif2 = require('./mif2.js');
+const { mif2 } = require('./mif2.js');
 const snippet = require('../library/modelSnippet.js');
 const fs = require('fs');
 const { coef } = require("./mif2Helpers.js");
@@ -109,7 +109,7 @@ const mypomp = new pomp({
 let t = new Date()
 mypomp.params = currentParams;//coef
 
-let mf = mif2.mif2Internal(
+let mf = mif2(
   {object: mypomp,
   Nmif: 1,
   start: currentParams,
@@ -126,26 +126,26 @@ let mf = mif2.mif2Internal(
 
 console.log((new Date() - t)/1000, mf.loglik, coef(mf));
  
-// const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-// const csvWriter = createCsvWriter({
-//     path: './samples/oo.csv',
-//     header: [ { id: 'loglik', title: 'loglik'},
-//     { id: 'nfail', title: 'nfail'},
-//     { id: 'R0', title: 'R0'},
-//     { id: 'amplitude', title: 'amplitude'},
-//     { id: 'gamma', title: 'gamma'},
-//     { id: 'mu', title: 'mu'},
-//     { id: 'sigma', title: 'sigma'},
-//     { id: 'rho', title: 'rho'},
-//     { id: 'psi', title: 'psi'},
-//     { id: 'S_0', title: 'S_0'},
-//     { id: 'E_0', title: 'E_0'},
-//     { id: 'I_0', title: 'I_0'},
-//     { id: 'R_0', title: 'R_0'} ]
-// });
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const csvWriter = createCsvWriter({
+    path: './samples/oo.csv',
+    header: [ { id: 'loglik', title: 'loglik'},
+    { id: 'nfail', title: 'nfail'},
+    { id: 'R0', title: 'R0'},
+    { id: 'amplitude', title: 'amplitude'},
+    { id: 'gamma', title: 'gamma'},
+    { id: 'mu', title: 'mu'},
+    { id: 'sigma', title: 'sigma'},
+    { id: 'rho', title: 'rho'},
+    { id: 'psi', title: 'psi'},
+    { id: 'S_0', title: 'S_0'},
+    { id: 'E_0', title: 'E_0'},
+    { id: 'I_0', title: 'I_0'},
+    { id: 'R_0', title: 'R_0'} ]
+});
 
-// csvWriter.writeRecords(mf.convRec)      
-// .then(() => {
-//     console.log('...Done');
-// });
+csvWriter.writeRecords(mf.convRec)      
+.then(() => {
+    console.log('...Done');
+});
 
