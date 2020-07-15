@@ -1,7 +1,14 @@
-const { euler_model_simulator } = require("./euler.js");
 /**
- * Simultes values of states at time t_{n+1}.
- * @param {object} object       POMP
+ *  @file        rprocessInternal.js
+ *               Simultes values of states at time t_{n+1}.
+ *                 
+ *  @author       Nazila Akhavan, nazila@kingsds.network
+ *  @date        june 2020
+ */
+const { euler_model_simulator } = require("./euler.js");
+
+/**
+ * @param {object} object       An object of class POMP
  * @param {array} xstart        Array of objects of states.
  * @param {array} times         Array of [t_n, t_{n+1}].
  * @param {array} params        Array of objects of parameters.

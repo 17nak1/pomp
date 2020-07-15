@@ -1,3 +1,12 @@
+/**
+ *  @file             mif2.js   
+ *                    Maximum likelihood by Iterated Filtering.    
+ *                         
+ *  @references       https://github.com/kingaa/pomp                  
+ *
+ *  @author           Nazila Akhavan, nazila@kingsds.network
+ *  @date             June 2020
+ */
 const mathLib = require("../library/mathLib.js");
 const { randwalk_perturbation } = require("./mif2cRW.js");
 const { rprocessInternal } = require("../library/rprocessInternal.js");
@@ -5,8 +14,6 @@ const { dmeasureInternal } = require("../library/dmeasureInternal.js");
 const { pfilter_computations } = require("../library/pfilterComputations.js");
 const { cooling, partrans, coef } = require("./mif2Helpers.js");
 /**
- * Maximum likelihood by Iterated Filtering.
- *
  * An iterated filtering algorithm for estimating the parameters of a partially-observed Markov process.
  * Running mif2 causes the algorithm to perform a specified number of particle-filter iterations.
  * At each iteration, the particle filter is performed on a perturbed version of the model, in which the parameters to be estimated are subjected to random perturbations at each observation.
@@ -15,7 +22,7 @@ const { cooling, partrans, coef } = require("./mif2Helpers.js");
  * The algorithm is presented and justified in Ionides et al. (2015).
  * 
  * @param {object} args 
- * @param {object} args.object          POMP
+ * @param {object} args.object          An object of class POMP.
  * @param {number} args.Nmif            Number of of filtering iterations.
  * @param {array} args.start            Input parameters.
  * @param {boolean} args.transform      If parmeters need to transform.
@@ -142,7 +149,7 @@ exports.mif2Internal = function (args) {
 }
 /**
  * Mif version of particle filter algorithm.
- * @param {object} object              POMP
+ * @param {object} object              An object of class POMP
  * @param {object} args.params         Input parameters.
  * @param {number} args.Np             The number of particles to use.
  * @param {number} mifiter 

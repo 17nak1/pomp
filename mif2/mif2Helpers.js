@@ -1,4 +1,12 @@
-
+/**
+ *  @file             mif2Helpers.js   
+ *                    mif2 depentent functions.  
+ *                         
+ *  @references       https://github.com/kingaa/pomp                  
+ *
+ *  @author           Nazila Akhavan, nazila@kingsds.network
+ *  @date             June 2020
+ */
 /**
  * Calculates alpha and gamma based on cooling type.
  * @param {string} type 
@@ -61,7 +69,7 @@ const partrans = function (pomp, params, dir = ["fromEstimationScale","toEstimat
 }
 /**
  * 
- * @param {object}  POMP 
+ * @param {object}  POMP         An object of class POMP.
  * @param {boolean} transform    If pomp.params need to be transformed
  * @returns {object}
  *  pomp.params

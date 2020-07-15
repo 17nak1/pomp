@@ -1,4 +1,9 @@
-
+/**
+ *  @file        pfilterComputartion.js
+ *                 
+ *  @author       Nazila Akhavan, nazila@kingsds.network
+ *  @date        june 2020
+ */
 const mathLib = require("./mathLib.js");
 /**
  * Resamples and examines weights for filtering failure.

@@ -1,9 +1,11 @@
 /**
  *  @file        modeSnippet.js
  *               Makes the model and its dependencies.
+ *               Note: To define rprocess, dprocess, dmeasure and initz
+ *               you should use the same input structure that is defined here. 
  *                 
- *  @autor       Nazila Akhavan, nazila@kingsds.network
- *  @date        Feb 2019
+ *  @author       Nazila Akhavan, nazila@kingsds.network
+ *  @date        june 2020
  */
 
 snippet = {}
@@ -30,8 +32,6 @@ snippet.rprocess = function (states, params, t, dt, covar) {
   let length = 3;
   let trans = new Array(length * 2).fill(0);
   let rate = new Array(length * 2); 
-
-  
   
   beta0 = R0 * (gamma + mu) * (sigma + mu) / sigma;
   va = 0;
@@ -74,7 +74,6 @@ snippet.initz = function(args, covar) {
 }
 
 snippet.dmeasure = function (data ,hiddenState, params, giveLog = 1) {
-  
   let lik
   let rho = params.rho;
   let psi = params.psi;
@@ -99,9 +98,9 @@ snippet.dmeasure = function (data ,hiddenState, params, giveLog = 1) {
   return lik
 }
 
-snippet.rmeasure = function (H, rho, psi) {
-  let mn = rho * H
-  let v = mn * (1.0 - rho + psi * psi * mn)
+snippet.rmeasure = function (hiddenState, params) {
+  let mn = params.rho * hiddenState.H
+  let v = mn * (1.0 - params.rho + params.psi * params.psi * mn)
   let tol = 1.0e-18
   let cases = mathLib.rnorm(mn, Math.sqrt(v) + tol)
   if (cases > 0) {
@@ -126,7 +125,7 @@ snippet.toEst = function(params) {
   let rho = mathLib.logit(params.rho);
   let amplitude = mathLib.logit(params.amplitude);
   let states = mathLib.toLogBarycentric([params.S_0, params.E_0, params.I_0, params.R_0]);
-  //Parameters order should be the same as paramnames.
+  
   return {R0: R0, amplitude: amplitude, gamma: gamma, mu: mu, sigma: sigma,
      rho: rho, psi: psi, S_0: states[0], E_0: states[1], I_0: states[2], R_0: states[3]};
 }
@@ -140,7 +139,7 @@ snippet.fromEst = function(params) {
   let rho = mathLib.expit(params.rho);
   let amplitude = mathLib.expit(params.amplitude);
   let states = mathLib.fromLogBarycentric([params.S_0, params.E_0, params.I_0, params.R_0]);
-  //Parameters order should be the same as paramnames.
+  
   return {R0: R0, amplitude: amplitude, gamma: gamma, mu: mu, sigma: sigma,
     rho: rho, psi: psi, S_0: states[0], E_0: states[1], I_0: states[2], R_0: states[3]};
 }

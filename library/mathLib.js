@@ -3,7 +3,7 @@
  *  @file        MathLib.js
  *               Library of depentent functions.  
  *
- *  @autor       Nazila Akhavan, nazila@kingsds.network
+ *  @author       Nazila Akhavan, nazila@kingsds.network
  *  @date        March 2019
  */
 

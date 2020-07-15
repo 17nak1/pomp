@@ -1,6 +1,14 @@
+
 /**
- * Calculates the liklihood using snippet.dmeasure.
- * @param {object} object       POMP
+ *  @file        dmeasureInternal.js
+ *               Calculates the liklihood using snippet.dmeasure.
+ *                 
+ *  @author      Nazila Akhavan, nazila@kingsds.network
+ *  @date        june 2020
+ */
+
+/**
+ * @param {object} object       An object of class POMP
  * @param {array} y             Array of objects of data.
  * @param {array} x             Array of objects of states.
  * @param {array} times         Array of data times.

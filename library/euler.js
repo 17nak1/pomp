@@ -1,13 +1,20 @@
 
 /**
- * 
- * @param {*} func 
- * @param {*} xstart 
- * @param {*} times 
- * @param {*} params 
- * @param {*} deltat 
- * @param {*} method 
- * @param {*} object 
+ *  @file        euler.js
+ *               Simulation using euler method.
+ *                 
+ *  @author      Nazila Akhavan, nazila@kingsds.network
+ *  @date        june 2020
+ */
+
+/**
+ * @param {function} func 
+ * @param {array} xstart 
+ * @param {array} times 
+ * @param {array} params 
+ * @param {number} deltat 
+ * @param {string} method 
+ * @param {object} object
  */
 exports.euler_model_simulator  = function(func, xstart, times, params, deltat, method, object)
 {

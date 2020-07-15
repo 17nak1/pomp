@@ -1,10 +1,17 @@
-
+/**
+ *  @file             mif2cRW.js   
+ *                    Randwalk_perturbation adds random normal value to the parameters.    
+ *                         
+ *  @references       https://github.com/kingaa/pomp                  
+ *
+ *  @author           Nazila Akhavan, nazila@kingsds.network
+ *  @date             June 2020
+ */
+const { qnorm } = require('lib-r-math.js/dist/src/lib/normal/qnorm');
 /** 
- * randwalk_perturbation adds random normal value to the parameters.
  * @param {matrix} params  Initial parameters befor transform.
  * @param {array} rw_sd    An array of objects with random walk values. 
  */
-const { qnorm } = require('lib-r-math.js/dist/src/lib/normal/qnorm');
 exports.randwalk_perturbation = function (params, rw_sd) { 
   for(let i = 0; i < params.length; i++) {
     Object.keys(rw_sd).forEach(key => {

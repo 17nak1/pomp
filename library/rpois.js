@@ -7,7 +7,7 @@
  *                    Copyright (C) 2018  Jacob K.F. Bogers  info@mail.jacob-bogers.com
  *                    https://github.com/R-js/libRmath.js/blob/master/src/lib/poisson/rpois.ts
  *
- *  @autor            Nazila Akhavan, nazila@kingsds.network
+ *  @author           Nazila Akhavan, nazila@kingsds.network
  *  @date             June 2020
  */
 

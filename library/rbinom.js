@@ -6,6 +6,7 @@
  *                    Copyright (C) 2018  Jacob K.F. Bogers  info@mail.jacob-bogers.com
  *                    https://github.com/R-js/libRmath.js/blob/master/src/lib/binomial/rbinom.ts
  *
+ *  @author            Nazila Akhavan, nazila@kingsds.network
  *  @date             June 2020
  */
 
