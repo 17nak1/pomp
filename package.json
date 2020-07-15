@@ -1,7 +1,7 @@
 {
   "name": "pomp",
   "version": "1.0.0",
-  "description": "Data analysis via partially observed stochastic",
+  "description": "Data analysis via partially observed Markov processes",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,7 +13,7 @@
   "keywords": [
     "Pomp"
   ],
-  "author": "Nazila Akhavan Kharazian",
+  "author": "Nazila Akhavan",
   "bugs": {
     "url": "https://github.com/17nak1/pomp/issues"
   },

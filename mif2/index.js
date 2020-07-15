@@ -1,5 +1,5 @@
 /**
- * 
+ * Example of using mif2
  *
  */
 const { mif2 } = require('./mif2.js');
@@ -111,13 +111,13 @@ mypomp.params = currentParams;//coef
 
 let mf = mif2(
   {object: mypomp,
-  Nmif: 1,
+  Nmif: 10,
   start: currentParams,
   transform: true,
   ivps: params_ic_fit,
   pars: params_mod_fit,
   rw_sd: rw_sd_f,
-  Np: 200,
+  Np: 10000,
   varFactor: 2,
   coolingType: "hyperbolic",
   coolingFraction: cool_fraction
