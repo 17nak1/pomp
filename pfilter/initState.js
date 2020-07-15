@@ -1,7 +1,16 @@
 
 /**
- * Scales initial states using object.initializer()
- * @param {object} object     POMP
+ *  @file             initState.js   
+ *                    Scales initial states using object.initializer()    
+ *                         
+ *  @references       https://github.com/kingaa/pomp                  
+ *
+ *  @author           Nazila Akhavan, nazila@kingsds.network
+ *  @date             June 2020
+ */
+
+/**
+ * @param {object} object     An object of class POMP.
  * @param {object} params     An object of initial parameters.
  * @param {number} nsim       Number of simulations (Np).
  * @return {array}

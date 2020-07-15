@@ -1,35 +1,46 @@
+/**
+ *  @file             pfilter.js   
+ *                    Particle filtering.    
+ *                         
+ *  @references       https://github.com/kingaa/pomp                  
+ *
+ *  @author           Nazila Akhavan, nazila@kingsds.network
+ *  @date             June 2020
+ */
 const { initState } = require("./initState.js");
 const { rprocessInternal } = require("../library/rprocessInternal.js");
 const { dmeasureInternal } = require("../library/dmeasureInternal.js");
 const { pfilter_computations } = require("../library/pfilterComputations.js");
-const { statenames } = require("../library/modelSnippet.js");
 
 /**
- * Particle filter
- *
  * A plain vanilla sequential Monte Carlo (particle filter) algorithm.
  * Resampling is performed at each observation.
  * @param {object} args 
  * @param {object} args.params         Input parameters.
  * @param {number} args.Np             The number of particles to use.
- * @param {number} args.tol            Tolerance.
- * @param {boolean} args.predMean      The prediction means are calculated for the state variables and parameters.
- * @param {boolean} args.predVar       The prediction variances are calculated for the state variables and parameters.
- * @param {boolean} args.filterMean    The filtering means are calculated for the state variables and parameters.
+ * @param {number} args.tol            Particles with log likelihood below tol are considered to be "lost". A filtering failure
+ *                                     occurs when, at some time point, all particles are lost. When all particles are lost,
+ *                                     the conditional log likelihood at that time point is set to 0.
+ * @param {number} args.maxFail        The maximum number of filtering failures allowed. If the number of filtering failures 
+ *                                     exceeds this number, execution will terminate with an error.
+ * @param {boolean} args.predMean      If TRUE, the prediction means are calculated for the state variables and parameters.
+ * @param {boolean} args.predVar       If TRUE, the prediction variances are calculated for the state variables and parameters.
+ * @param {boolean} args.filterMean    If TRUE, the filtering means are calculated for the state variables and parameters.
  * @param {boolean} args.filterTraj    Not translated.
  * @param {boolean} args.saveStates    The state-vector for each particle at each time is saved.
  * @param {boolean} args.saveParams    The params-vector for each particle at each time is saved.
- * @param {object} args.object         POMP object.
+ * @param {object} args.object         An object of class POMP.
  * 
  * @returns {object}
  *  @param {number} logLik         The estimated log likelihood.
- *  @param {array} condLogLik      The estimated conditional log likelihood.
- *  @param {array} effSampleSize   The (time-dependent) estimated effective sample size.
+ *  @param {array} condLogLik      An array of estimated conditional log likelihoods at each time point.
+ *  @param {array} effSampleSize   An array containing the effective number of particles at each time point.
  *  @param {array} pred.mean       The mean of the approximate prediction distribution.
  *  @param {array} pred.var        The variance of the approximate prediction distribution.
  *  @param {array} filter.mean     The mean of the filtering distribution.
  *  @param {boolean} filter.traj   Returns false. Not translated.
  *  @param {array} saved.states    Retrieve list of saved states.
+ *  @param {number} nfail          The number of filtering failures encountered.
  *    
  */
 exports.pfilter = function (args) {
