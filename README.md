@@ -1,8 +1,8 @@
 ## pomp:
-An R package for statistical inference on partially observed Markov processes
+An R package for statistical inference on partially observed Markov processes.
 
 ## mif2:
-Maximum likelihood by iterated filtering
+Maximum likelihood by iterated filtering.
 
 An iterated filtering algorithm for estimating the parameters of a partially-observed Markov process.
 Running ***mif2*** causes the algorithm to perform a specified number of particle-filter iterations.

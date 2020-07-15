@@ -5,8 +5,8 @@
 let rootDir ='.'
 const fs = require('fs');
 let pomp = require('./library/pomp.js');
-const mif2 = require('./mif2/mif2.js');
-let { pfilter } = require('./pfilter/pfilter.js');
+const { mif2 } = require('./mif2/mif2.js');
+const { pfilter } = require('./pfilter/pfilter.js');
 const snippet = require('./library/modelSnippet.js');
 const { coef } = require("./mif2/mif2Helpers.js");
 
@@ -109,7 +109,7 @@ const rw_sd_f = function(time) {
 let t = new Date()
 mypomp.params = currentParams;//coef
 
-let mf = mif2.mif2Internal(
+let mf = mif2(
   {object: mypomp,
   Nmif: 1,
   start: currentParams,
