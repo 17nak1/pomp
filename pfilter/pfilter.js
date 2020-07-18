@@ -56,15 +56,16 @@ exports.pfilter = function (args) {
   let saveParams = args.saveParams ? args.saveParams : false;
   object = args.object;
 
-  if (Object.keys(params).length === 0)
+  if (Object.keys(params).length === 0) {
     throw new Error("In pfilterInternal: params must be specified");
+  } 
   let onePar = false;
   
   let times = [object.t0, ...object.times];
   let ntimes = times.length - 1;
   
   if (typeof Np === "function" || Np === undefined || Np <= 0) {
-    throw new Error(`Number of particles should be a positive number. ${Np} is not translated`)
+    throw new Error(`Number of particles should be a positive number. ${Np} is not translated`);
   }
   if (!Array.isArray(params) || params.every(x => !Array.isArray(x))) { //there is only one parameter vector
     onePar = true;
@@ -123,7 +124,7 @@ exports.pfilter = function (args) {
     try {
       X = rprocessInternal(object, x, [times[nt],times[nt + 1]], params, 1)
     } catch (e) {
-      console.error(`In pfilterInternal: Process simulation error: ${e}`)
+      throw new Error(`In pfilterInternal: Process simulation error: ${e}`)
     }
   
     if (predVar) { // check for nonfinite state variables and parameters
@@ -144,7 +145,7 @@ exports.pfilter = function (args) {
         log = false
       ); 
     } catch (error) {
-      console.error(`In mif2.js: error in calculation of weights: ${error}`);
+      throw new Error(`In mif2.js: error in calculation of weights: ${error}`);
     }
 
     let allFinite = weights.map(w => isFinite(w)).reduce((a, b) => a & b, 1);
@@ -172,7 +173,7 @@ exports.pfilter = function (args) {
         tol = tol
       );
     } catch (error) {
-      console.error(`particle-filter error: ${error}`) 
+      throw new Error(`particle-filter error: ${error}`);
     } 
 
     let allFail = xx.fail;

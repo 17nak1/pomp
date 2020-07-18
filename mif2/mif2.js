@@ -121,8 +121,9 @@ exports.mif2 = function (args) {
       )
       
     } catch (error) {
-      console.error(`Iterate the filtering stoped: ${error}`)
+      throw new Error(`In mif2: Iterate the filtering stopped: ${error}`)
     }
+    if (!pfp) return {};
     paramMatrix = pfp.paramMatrix;
     convRec[n].loglik = pfp.loglik;
     convRec[n].nfail = pfp.nfail;
@@ -206,7 +207,7 @@ const mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd,
         offset=1
       );
     } catch (error) {
-      console.error(`In mif2.js: process simulation error: ${error}`);
+      throw new Error(`In mif2.js: process simulation error: ${error}`);
     }
     
     let weights = [];
@@ -220,12 +221,12 @@ const mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd,
         log = false
       ); 
     } catch (error) {
-      console.error(`In mif2.js: error in calculation of weights: ${error}`);
+      throw new Error(`In mif2.js: error in calculation of weights: ${error}`);
     }
     
     let allFinite = weights.map(w => isFinite(w)).reduce((a, b) => a & b, 1);
     if (!allFinite) {
-      throw new Error("In dmeasure: weights returns non-finite value");
+      throw new Error("Mif2: In dmeasure weights returns non-finite value");
     }
 
     // compute weighted mean at last timestep
@@ -259,7 +260,7 @@ const mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd,
         tol = tol
       );
     } catch (error) {
-      console.error(`particle-filter error: ${error}`) 
+      throw new Error(`particle-filter error: ${error}`);
     }
 
     let allFail = xx.fail;
@@ -281,7 +282,7 @@ const mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd,
     
 
   if (nfail > 0) {
-    console.log("warning! filtering failure occurred.");
+    console.log("warning! filtering failure occurred in mif2.");
   }
 
   return {

@@ -143,5 +143,23 @@ snippet.fromEst = function(params) {
   return {R0: R0, amplitude: amplitude, gamma: gamma, mu: mu, sigma: sigma,
     rho: rho, psi: psi, S_0: states[0], E_0: states[1], I_0: states[2], R_0: states[3]};
 }
+// Determine Random Walk
+snippet.determineRW = function(param) {
+  let rwSize = 0.05;
+  if(param = "R0") {
+    return function(time) {
+      let R0 = time < 1944 ? 0 : rwSize;
+      let amplitude = time < 1944 ? 0 : rwSize;
+      let mu = time < 1944 ? 0 : rwSize;
+      let rho = time < 1944 ? 0 : rwSize;
+      let psi = time < 1944 ? 0 : rwSize;
+      let S_0 = time < 1944 ? 0 : rwSize;
+      let E_0 = time < 1944 ? 0 : rwSize;
+      let I_0 = time < 1944 ? 0 : rwSize;
+      let R_0 = time < 1944 ? 0 : rwSize;
+      return {R0: R0, amplitude: amplitude, mu: mu, rho: rho, psi: psi, S_0: S_0, E_0: E_0, I_0: I_0, R_0};
+    }
+  }  
+}
 
 module.exports = snippet
