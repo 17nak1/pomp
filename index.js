@@ -1,5 +1,5 @@
 /**
- * 
+ * Complete example using mif2 and replicating pfilter
  *
  */
 let rootDir ='.'
@@ -66,6 +66,7 @@ for (let i = 1; i < lines.length ; i++) {
   }
 }
 
+let rw_sd = snippet.determineRW("R0")
 currentParams = currentParams[0]//Only for this example, we need loop over currentParams
 
 const mypomp = new pomp({
@@ -92,23 +93,9 @@ let params_ic_fit = [];
 let params_mod_fit = ["R0", "amplitude", "mu", "rho", "psi"];
 let cool_fraction = 0.05;
 
-const rw_sd_f = function(time) {
-  let rwSize = 0.05;
-  let R0 = time < 1944 ? 0 : rwSize;
-  let amplitude = time < 1944 ? 0 : rwSize;
-  let mu = time < 1944 ? 0 : rwSize;
-  let rho = time < 1944 ? 0 : rwSize;
-  let psi = time < 1944 ? 0 : rwSize;
-  let S_0 = time < 1944 ? 0 : rwSize;
-  let E_0 = time < 1944 ? 0 : rwSize;
-  let I_0 = time < 1944 ? 0 : rwSize;
-  let R_0 = time < 1944 ? 0 : rwSize;
-  return {R0: R0, amplitude: amplitude, mu: mu, rho: rho, psi: psi, S_0: S_0, E_0: E_0, I_0: I_0, R_0};
-}
+let t = new Date();
 
-let t = new Date()
 mypomp.params = currentParams;//coef
-
 let mf = mif2(
   {object: mypomp,
   Nmif: 1,
@@ -116,17 +103,17 @@ let mf = mif2(
   transform: true,
   ivps: params_ic_fit,
   pars: params_mod_fit,
-  rw_sd: rw_sd_f,
+  rw_sd: rw_sd,
   Np: 200,
   varFactor: 2,
   coolingType: "hyperbolic",
   coolingFraction: cool_fraction
   }
 )
-console.log((new Date() - t)/1000, mf.loglik, coef(mf));
+console.log((new Date() - t)/1000, coef(mf));
 
 t = new Date()
-let pf = pfilter({object: mypomp, params: currentParams, Np: 200, filterMean: true, predMean: true, maxFail: 3000})
+let pf = pfilter({object: mypomp, params: coef(mf), Np: 200, filterMean: true, predMean: true, maxFail: 3000})
 console.log(new Date() - t, pf.loglik)
 
   

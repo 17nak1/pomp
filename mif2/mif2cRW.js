@@ -13,10 +13,15 @@ const { qnorm } = require('lib-r-math.js/dist/src/lib/normal/qnorm');
  * @param {array} rw_sd    An array of objects with random walk values. 
  */
 exports.randwalk_perturbation = function (params, rw_sd) { 
+  let rn;
   for(let i = 0; i < params.length; i++) {
     Object.keys(rw_sd).forEach(key => {
       if (rw_sd[key] !== null) {
-        params[i][key] += rw_sd[key] * normalRand();
+        rn = normalRand()
+        while (!isFinite(rn)) {
+          rn = normalRand()  
+        }
+        params[i][key] += rw_sd[key] * rn;
       } ;
     });
   }
