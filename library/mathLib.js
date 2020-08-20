@@ -241,7 +241,7 @@ mathLib.mean = function (x , w = 0) {
   for (let i = 0; i < ncol; i ++) {
     temp = 0;
     for (let j = 0; j < nrow; j++) {
-      temp += Object.values(x[j])[i] * w[j];
+      if (w[j] !== 0) temp += Object.values(x[j])[i] * w[j];
     }
     mean[Object.keys(x[0])[i]] = temp / sumw; 
   }  
