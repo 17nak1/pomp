@@ -770,30 +770,31 @@ snippet.determineRW = function(run) {
     return ((time) => {
       let rw_size = 0.05;
       let T0 = 75;
-      let d ={};
-      d.dI0 = time < T0 ? 0 : rw_size
-      d.dP0 = time < T0 ? 0 : rw_size
-      d.dT0 = time < T0 ? 0 : rw_size
-      d.dB0 = time < T0 ? 0 : rw_size
-      d.dI1 = time < T0 ? 0 : rw_size
-      d.dP1 = time < T0 ? 0 : rw_size
-      d.dT1 = time < T0 ? 0 : rw_size
-      d.dB1 = time < T0 ? 0 : rw_size
-      d.qP = time < T0 ? rw_size : rw_size
-      d.qH = time < T0 ? rw_size : rw_size
-      d.qC = time < T0 ? rw_size : rw_size
+      let d = {};
+      d.dI0 = time < T0 ? 0 : rw_size;
+      d.dP0 = time < T0 ? 0 : rw_size;
+      d.dT0 = time < T0 ? 0 : rw_size;
+      d.dB0 = time < T0 ? 0 : rw_size;
+      d.dI1 = time < T0 ? 0 : rw_size;
+      d.dP1 = time < T0 ? 0 : rw_size;
+      d.dT1 = time < T0 ? 0 : rw_size;
+      d.dB1 = time < T0 ? 0 : rw_size;
+      d.qP = time < T0 ? rw_size : rw_size;
+      d.qH = time < T0 ? rw_size : rw_size;
+      d.qC = time < T0 ? rw_size : rw_size;
       d.mI=time < T0 ? rw_size : rw_size
       d.mC=time < T0 ? rw_size : rw_size
       d.mV=time < T0 ? rw_size : rw_size
-      d.sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size
-      d.kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size
-      d.gammaI = time < T0 ? 0.5*rw_size : 0.5*rw_size
-      d.gammaH = time < 93 ? 0 : rw_size
-      d.gammaC = time < 93 ? 0 : rw_size
-      d.gammaV = time < 93 ? 0 : rw_size
-      d.rho = time < T0 ? rw_size : rw_size
+      d.sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size;
+      d.kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size;
+      d.gammaI = time < T0 ? 0.5*rw_size : 0.5*rw_size;
+      d.gammaH = time < 93 ? 0 : rw_size;
+      d.gammaC = time < 93 ? 0 : rw_size;
+      d.gammaV = time < 93 ? 0 : rw_size;
+      d.rho = time < T0 ? rw_size : rw_size;
       d.TF = time < 35 ? 0 : rw_size;
-      return d}).toString()
+      return d;
+    }).toString();
 }
 
 

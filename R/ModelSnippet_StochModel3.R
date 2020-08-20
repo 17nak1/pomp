@@ -4,7 +4,7 @@ T0 <- 75
 T1 <- 139
 modeltype <- c(nstageE=3L, nstageI=3L, nstageP=3L, nstageH=3L, nstageC=3L, nstageV=3L)
 pop <- 10e6
-
+t1 <- 75
 dObs <- Csnippet("
                  double *HOSP = &H1;
                  double *CARE = &C1;
@@ -61,17 +61,17 @@ rObs <- Csnippet("
                  double TOT_H, TOT_C, TOT_V;
                  double reported_cases = casesH + casesIQ;
                  reports = rpois(reported_cases  + 1e-6);
-                 
+
                  double reported_deaths = deathsCV + deathsIIQ;
                  deaths = rpois(reported_deaths  + 1e-6);
-                 
+
                  int i;
                  for(i = 0, TOT_H = 0; i < nstageH; i++) {
                  TOT_H += HOSP[i];
                  }
                  for(i = 0, TOT_C = 0; i < nstageC; i++) {
                  TOT_C += CARE[i];
-                 }                 
+                 }
                  for(i = 0, TOT_V = 0; i < nstageV; i++) {
                  TOT_V += VENT[i];
                  }
@@ -81,7 +81,7 @@ rObs <- Csnippet("
                  ")
 
 rSim <- Csnippet("
-                 
+
                  double *SUSC = &S;
                  double *EXPD = &E1;
                  double *PRE = &P1;
@@ -91,25 +91,25 @@ rSim <- Csnippet("
                  double *VENT = &V1;
                  double *DEAD = &M;
                  double *RCVD = &R;
-                 
+
                  double *EXPDQ = &EQ1;
                  double *PREQ = &PQ1;
                  double *INFDQ = &IQ1;
-                 
-                 
+
+
                  // Different transmission rates
-                 
+
                  double dQdt;
                  double TOT_PRE, TOT_INFD;
                  int i;
-                 
+
                  for(i = 0, TOT_PRE = 0; i < nstageP; i++) {
                  TOT_PRE += PRE[i];
                  }
                  for(i = 0, TOT_INFD = 0; i < nstageI; i++) {
                  TOT_INFD += INFD[i];
                  }
-                 
+
                  double PD, lambdaI, lambdaP, lambdaPQ, lambda, lambdaQ;
                  if ( R_FINITE(tests) ) {
                  PD = rho * (tests / (tests + TF));
@@ -146,22 +146,22 @@ rSim <- Csnippet("
                  lambda = ( ( dI1 * lambdaI + dP1 * lambdaP + dT1 * iota ) / pop ) * dQdt;
                  lambdaQ = ( (  dP1 * lambdaPQ  ) / pop ) * dQdt;
                  }
-          
+
                  // From class S
                  double transS[2];
                  double rateS[2];
                  rateS[0] = lambda ;
                  rateS[1] = lambdaQ;
                  reulermultinom(2,SUSC[0], &rateS[0], dt, &transS[0]);
-                 
-                 
+
+
                  // From class EQ
                  double transEQ[nstageE];
                  double rateEQ = nstageE * sigma;
                  for (i = 0; i < nstageE; i++) {
                  reulermultinom(1, EXPDQ[i], &rateEQ, dt, &transEQ[i]);
                  }
-                 
+
                  // From class PQ
                  double transPQ[nstageP+1];
                  double ratePQ = nstageP * kappa;
@@ -172,52 +172,52 @@ rSim <- Csnippet("
                  ratePQIQH[0] = (1-qP) * nstageP * kappa;
                  ratePQIQH[1] = qP * nstageP * kappa;
                  reulermultinom(2, PREQ[nstageP-1], &ratePQIQH[0], dt, &transPQ[nstageP-1]);
-                 
+
                  // From class IQ
                  double transIQ[nstageI+1];
                  double rateIQ = nstageI * gammaI;
                  for (i = 0; i < nstageI-1; i++) {
                  reulermultinom(1, INFDQ[i], &rateIQ, dt, &transIQ[i]);
                  }
-                 
+
                  double rateIQRD[2];
                  rateIQRD[0] = (1-mI) * nstageI * gammaI;
                  rateIQRD[1] = mI * nstageI * gammaI;
                  reulermultinom(2, INFDQ[nstageI-1], &rateIQRD[0], dt, &transIQ[nstageI-1]);
-                 
+
                  // From class E
                  double transE[nstageE];
                  double rateE = nstageE * sigma;
                  for (i = 0; i < nstageE; i++) {
                  reulermultinom(1, EXPD[i], &rateE, dt, &transE[i]);
                  }
-                 
+
                  // From class P
                  double transP[nstageP+2];
                  double rateP = nstageP * kappa;
                  for (i = 0; i < nstageP-1; i++) {
                  reulermultinom(1, PRE[i], &rateP, dt, &transP[i]);
                  }
-                 
+
                  double ratePIHIQ[3];
                  ratePIHIQ[0] = (1.0-PD) * (1.0-qP) * nstageP * kappa;
                  ratePIHIQ[1] = qP * nstageP * kappa;
                  ratePIHIQ[2] = PD * (1.0-qP) * nstageP * kappa;
                  reulermultinom(3, PRE[nstageP-1], &ratePIHIQ[0], dt, &transP[nstageP-1]);
-                 
+
                  // From class I
                  double transI[nstageI+1];
                  double rateI = nstageI * gammaI;
                  for (i = 0; i < nstageI-1; i++) {
                  reulermultinom(1, INFD[i], &rateI, dt, &transI[i]);
                  }
-                 
+
                  double rateIRD[2];
                  rateIRD[0] = (1-mI) * nstageI * gammaI;
                  rateIRD[1] = mI * nstageI * gammaI;
                  reulermultinom(2, INFD[nstageI-1], &rateIRD[0], dt, &transI[nstageI-1]);
-                 
-                 
+
+
                  // From class H
                  double transH[nstageH+1];
                  double rateH = nstageH * gammaH;
@@ -228,8 +228,8 @@ rSim <- Csnippet("
                  rateHRC[0] = (1-qH) * nstageH * gammaH;
                  rateHRC[1] = qH * nstageH * gammaH;
                  reulermultinom(2, HOSP[nstageH-1], &rateHRC[0], dt, &transH[nstageH-1]);
-                 
-                 
+
+
                  // From class C
                  double transC[nstageC+2];
                  double rateC = nstageC * gammaC;
@@ -241,7 +241,7 @@ rSim <- Csnippet("
                  rateCRVM[1] = qC * nstageC * gammaC;
                  rateCRVM[2] = mC * (1-qC) * nstageC * gammaC;
                  reulermultinom(3, CARE[nstageC-1], &rateCRVM[0], dt, &transC[nstageC-1]);
-                 
+
                  // From class V
                  double transV[nstageV+1];
                  double rateV = nstageV * gammaV;
@@ -252,9 +252,9 @@ rSim <- Csnippet("
                  rateVRD[0] = (1-mV) * nstageV * gammaV;
                  rateVRD[1] = mV * nstageV * gammaV;
                  reulermultinom(2, VENT[nstageV-1], &rateVRD[0], dt, &transV[nstageV-1]);
-                 
-                 
-                 
+
+
+
                  // Balance the equations
                  SUSC[0] -= transS[0];
                  EXPD[0] += transS[0];
@@ -279,10 +279,10 @@ rSim <- Csnippet("
                  CARE[nstageC-1] -= transC[nstageC] + transC[nstageC+1];
                  for (i = 0; i < nstageV; i++) VENT[i] -= transV[i];
                  for (i = 1; i < nstageV; i++) VENT[i] += transV[i-1];
-                 VENT[nstageV-1] -= transV[nstageV];               
+                 VENT[nstageV-1] -= transV[nstageV];
                  RCVD[0] += transI[nstageI-1] + transH[nstageH-1] + transC[nstageC-1] + transV[nstageV-1];
                  DEAD[0] += transI[nstageI] + transC[nstageC+1] + transV[nstageV];
-                 
+
                  SUSC[0] -= transS[1];
                  EXPDQ[0] += transS[1];
                  for (i = 0; i < nstageE; i++) EXPDQ[i] -= transEQ[i];
@@ -290,7 +290,7 @@ rSim <- Csnippet("
                  PREQ[0] += transEQ[nstageE-1];
                  for (i = 0; i < nstageP; i++) PREQ[i] -= transPQ[i];
                  for (i = 1; i < nstageP; i++) PREQ[i] += transPQ[i-1];
-                 PREQ[nstageP-1] -= transPQ[nstageP];  
+                 PREQ[nstageP-1] -= transPQ[nstageP];
                  PRE[nstageP-1] -= transP[nstageP+1];
                  INFDQ[0] += transPQ[nstageP-1] + transP[nstageP+1];
                  HOSP[0] += transPQ[nstageP];
@@ -299,7 +299,7 @@ rSim <- Csnippet("
                  INFDQ[nstageI-1] -= transIQ[nstageI];
                  RCVD[0] += transIQ[nstageI-1];
                  DEAD[0] += transIQ[nstageI];
-                 
+
                  casesI += transP[nstageP-1];
                  casesIQ += transPQ[nstageP-1] + transP[nstageP+1];
                  casesH += transPQ[nstageP] + transP[nstageP];
@@ -319,7 +319,7 @@ skel <- Csnippet("
                  double *VENT = &V1;
                  double *DEAD = &M;
                  double *RCVD = &R;
-                 
+
                  double *DSUSC = &DS;
                  double *DEXPD = &DE1;
                  double *DPRE = &DP1;
@@ -329,30 +329,30 @@ skel <- Csnippet("
                  double *DVENT = &DV1;
                  double *DDEAD = &DM;
                  double *DRCVD = &DR;
-                 
-                 
+
+
                  double *EXPDQ = &EQ1;
                  double *PREQ = &PQ1;
                  double *INFDQ = &IQ1;
                  double *DEXPDQ = &DEQ1;
                  double *DPREQ = &DPQ1;
                  double *DINFDQ = &DIQ1;
-                 
-                 
+
+
                  // Different transmission rates
-                 
+
                  double dQdt;
                  double TOT_INFD, TOT_PRE;
                  int i;
-                 
+
                  for(i = 0, TOT_PRE = 0; i < nstageP; i++) {
                  TOT_PRE += PRE[i];
                  }
                  for(i = 0, TOT_INFD = 0; i < nstageI; i++) {
                  TOT_INFD += INFD[i];
                  }
-                 
-                 
+
+
                  double PD, lambdaI, lambdaP, lambdaPQ, lambda, lambdaQ;
                  if ( R_FINITE(tests) ) {
                  PD = rho * (tests / (tests + TF));
@@ -362,7 +362,7 @@ skel <- Csnippet("
                  lambdaI = betaI * TOT_INFD;
                  lambdaP = betaI * theta * TOT_PRE * (1-PD);
                  lambdaPQ = betaI * theta * TOT_PRE * PD;
-                 
+
                  if (t < T0) {
                  dQdt  = rgammawn(beta_sd, dt)/dt;
                  lambda = ( (lambdaI + lambdaP + iota) / pop ) * dQdt;
@@ -388,7 +388,7 @@ skel <- Csnippet("
                  lambda = ( ( dI1 * lambdaI + dP1 * lambdaP + dT1 * iota ) / pop ) * dQdt;
                  lambdaQ = ( (  dP1 * lambdaPQ  ) / pop ) * dQdt;
                  }
-                 
+
                  // From class S
                  double transS[2];
                  double rateS[2];
@@ -398,14 +398,14 @@ skel <- Csnippet("
                  double transS_tot = (1.0 - exp(- rateS_tot * dt)) * SUSC[0];
                  transS[0] = rateS[0] / rateS_tot * transS_tot;
                  transS[1] = rateS[1] / rateS_tot * transS_tot;
-                 
+
                  // From class EQ
                  double transEQ[nstageE];
                  double rateEQ = nstageE * sigma;
                  for (i = 0; i < nstageE; i++) {
                  transEQ[i] =  (1.0 - exp(- rateEQ * dt))* EXPDQ[i];
                  }
-                 
+
                  // From class PQ
                  double transPQ[nstageP+1];
                  double ratePQ = nstageP * kappa;
@@ -416,7 +416,7 @@ skel <- Csnippet("
                  transPQIQH = (1.0 - exp(- ratePQ * dt))* PREQ[nstageP-1];
                  transPQ[nstageP-1] = (1-qP) * transPQIQH;
                  transPQ[nstageP] = qP * transPQIQH;
-                 
+
                  // From class IQ
                  double transIQ[nstageI+1];
                  double rateIQ = nstageI * gammaI;
@@ -427,15 +427,15 @@ skel <- Csnippet("
                  transIQRD = (1.0 - exp(- rateIQ * dt))* INFDQ[nstageI-1];
                  transIQ[nstageI-1] = (1-mI) * transIQRD;
                  transIQ[nstageI] = mI * transIQRD;
-                 
-                 
+
+
                  // From class E
                  double transE[nstageE];
                  double rateE = nstageE * sigma;
                  for (i = 0; i < nstageE; i++) {
                  transE[i] =  (1.0 - exp(- rateE * dt))* EXPD[i];
                  }
-                 
+
                  // From class P
                  double transP[nstageP+2];
                  double rateP = nstageP * kappa;
@@ -447,33 +447,33 @@ skel <- Csnippet("
                  transP[nstageP-1] = (1-PD) * (1-qP) * transPIHIQ;
                  transP[nstageP] = qP * transPIHIQ;
                  transP[nstageP+1] = PD * (1-qP) * transPIHIQ;
-                 
+
                  // From class I
                  double transI[nstageI+1];
                  double rateI = nstageI * gammaI;
                  for (i = 0; i < nstageI-1; i++) {
                  transI[i] =  (1.0 - exp(- rateI * dt))* INFD[i];
                  }
-                 
+
                  double transIRD;
                  transIRD = (1.0 - exp(- rateI * dt))* INFD[nstageI-1];
                  transI[nstageI-1] = (1-mI) * transIRD;
                  transI[nstageI] = mI * transIRD;
-                 
-                 
+
+
                  // From class H
                  double transH[nstageH+1];
                  double rateH = nstageH * gammaH;
                  for (i = 0; i < nstageH-1; i++) {
                  transH[i] =  (1.0 - exp(- rateH * dt))* HOSP[i];
                  }
-                 
+
                  double transHRC;
                  transHRC = (1.0 - exp(- rateH * dt))* HOSP[nstageH-1];
                  transH[nstageH-1] = (1-qH) * transHRC;
                  transH[nstageH] = qH * transHRC;
-                 
-                 
+
+
                  // From class C
                  double transC[nstageC+2];
                  double rateC = nstageC * gammaC;
@@ -485,7 +485,7 @@ skel <- Csnippet("
                  transC[nstageC-1] =  (1-mC) * (1-qC) * transCRVM;
                  transC[nstageC] = qC * transCRVM;
                  transC[nstageC+1] = mC * (1-qC) * transCRVM;
-                 
+
                  // From class V
                  double transV[nstageV+1];
                  double rateV = nstageV * gammaV;
@@ -496,7 +496,7 @@ skel <- Csnippet("
                  transVRD = (1.0 - exp(- rateV * dt))* VENT[nstageV-1];
                  transV[nstageV-1] = (1-mV) * transVRD;
                  transV[nstageV] = mV * transVRD;
-                 
+
                  // Balance the equations
                  DSUSC[0] = SUSC[0];
                  for (i = 0; i < nstageE; i++) DEXPD[i] = EXPD[i];
@@ -512,13 +512,13 @@ skel <- Csnippet("
                  DcasesH = casesH;
                  DdeathsIIQ = deathsIIQ;
                  DdeathsCV = deathsCV;
-                 
+
                  for (i = 0; i < nstageE; i++) DEXPDQ[i] = EXPDQ[i];
                  for (i = 0; i < nstageP; i++) DPREQ[i] = PREQ[i];
                  for (i = 0; i < nstageI; i++) DINFDQ[i] = INFDQ[i];
-                 
-                 
-                 
+
+
+
                  // Balance the equations
                  DSUSC[0] -= transS[0];
                  DEXPD[0] += transS[0];
@@ -543,10 +543,10 @@ skel <- Csnippet("
                  DCARE[nstageC-1] -= transC[nstageC] + transC[nstageC+1];
                  for (i = 0; i < nstageV; i++) DVENT[i] -= transV[i];
                  for (i = 1; i < nstageV; i++) DVENT[i] += transV[i-1];
-                 DVENT[nstageV-1] -= transV[nstageV];               
+                 DVENT[nstageV-1] -= transV[nstageV];
                  DRCVD[0] += transI[nstageI-1] + transH[nstageH-1] + transC[nstageC-1] + transV[nstageV-1];
                  DDEAD[0] += transI[nstageI] + transC[nstageC+1] + transV[nstageV];
-                 
+
                  DSUSC[0] -= transS[1];
                  DEXPDQ[0] += transS[1];
                  for (i = 0; i < nstageE; i++) DEXPDQ[i] -= transEQ[i];
@@ -554,7 +554,7 @@ skel <- Csnippet("
                  DPREQ[0] += transEQ[nstageE-1];
                  for (i = 0; i < nstageP; i++) DPREQ[i] -= transPQ[i];
                  for (i = 1; i < nstageP; i++) DPREQ[i] += transPQ[i-1];
-                 DPREQ[nstageP-1] -= transPQ[nstageP];  
+                 DPREQ[nstageP-1] -= transPQ[nstageP];
                  DPRE[nstageP-1] -= transP[nstageP+1];
                  DINFDQ[0] += transPQ[nstageP-1] + transP[nstageP+1];
                  DHOSP[0] += transPQ[nstageP];
@@ -563,7 +563,7 @@ skel <- Csnippet("
                  DINFDQ[nstageI-1] -= transIQ[nstageI];
                  DRCVD[0] += transIQ[nstageI-1];
                  DDEAD[0] += transIQ[nstageI];
-                 
+
                  DcasesI += transP[nstageP-1];
                  DcasesIQ += transPQ[nstageP-1] + transP[nstageP+1];
                  DcasesH += transPQ[nstageP] + transP[nstageP];
@@ -574,7 +574,7 @@ skel <- Csnippet("
 
 
 rInit <- Csnippet("
-                  
+
                   double *SUSC = &S;
                   double *EXPD = &E1;
                   double *PRE = &P1;
@@ -584,14 +584,14 @@ rInit <- Csnippet("
                   double *VENT = &V1;
                   double *DEAD = &M;
                   double *RCVD = &R;
-                  
+
                   double *EXPDQ = &EQ1;
                   double *PREQ = &PQ1;
                   double *INFDQ = &IQ1;
-                  
+
                   int i;
-                  
-                  double fS, fEQ, fPQ, fIQ, fE, fP, fI, fH, fC, fR, fM, fV; 
+
+                  double fS, fEQ, fPQ, fIQ, fE, fP, fI, fH, fC, fR, fM, fV;
                   fS = S0;
                   fEQ = EQ0/nstageE;
                   fPQ = PQ0/nstageP;
@@ -604,7 +604,7 @@ rInit <- Csnippet("
                   fV = V0/nstageV;
                   fM = M0;
                   fR = 1 - fS - nstageE*fE - nstageP*fP - nstageI*fI - nstageH*fH - nstageC*fC - nstageV*fV - nstageE*fEQ - nstageP*fPQ - nstageI*fIQ - fM;
-                  
+
                   SUSC[0] = nearbyint(pop*fS);
                   for (i = 0; i < nstageE; i++) EXPDQ[i] = nearbyint(pop*fEQ);
                   for (i = 0; i < nstageP; i++) PREQ[i] = nearbyint(pop*fPQ);
@@ -617,7 +617,7 @@ rInit <- Csnippet("
                   for (i = 0; i < nstageV; i++) VENT[i] = nearbyint(pop*fV);
                   DEAD[0] = nearbyint(pop*fM);
                   RCVD[0] = nearbyint(pop*fR);
-                  
+
                   casesI = 0.0;
                   casesIQ = 0.0;
                   casesH = 0.0;
@@ -637,7 +637,7 @@ statenames <- function (nstageE=3L, nstageP=3L, nstageI=3L, nstageH=3L, nstageC=
     paste0("C",seq_len(nstageC)),
     paste0("V",seq_len(nstageV)),
     "M", "R"
-  )                  
+  )
 }
 
 icnames <- function () {
@@ -646,13 +646,13 @@ icnames <- function () {
 
 zeronames <- c("casesI", "casesIQ", "casesH", "deathsIIQ", "deathsCV")
 
-params_log <- c("betaI", "iota","beta_sd", 
+params_log <- c("betaI", "iota","beta_sd",
                 "sigma", "kappa", "gammaI", "gammaH", "gammaC", "gammaV",
                 "TF")
 params_logit <- c("rho", "theta",
                   "dI0", "dP0", "dT0", "dB0",
                   "dI1", "dP1", "dT1", "dB1",
-                  "qP", "qH", "qC", 
+                  "qP", "qH", "qC",
                   "mI", "mC", "mV")
 
 params_mod <- c(params_log,params_logit)

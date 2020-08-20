@@ -96,7 +96,7 @@ exports.mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd, t
 
     // compute weighted mean at last timestep
     if (nt === ntimes - 1) {
-      if (weights.map(w => w>0).reduce((a, b) => a || b, 0)) {
+      if (weights.map(w => w>0).reduce((a, b) => a || b, 0)) {//if any weights > 0 
         // replace and fill object.params instead of coef(object). This is the same thing.
         object.params = mathLib.mean(params, w = weights);
         object.params = coef(object, transform = transform);
