@@ -95,27 +95,27 @@ const pompData = {
   obsnames: dataHeader,
   globals: globals,
 };
-// let tm = trajMatch(paramsetData[0],{object: pompData, est: [], transform: true, method: "subplex"})
+let tm = trajMatch(paramsetData[0],{object: pompData, est: [], transform: true, method: "subplex"})
 
-// console.log('finished.',tm.value);
-t = new Date()
+console.log('finished.',tm.value);
+// t = new Date()
 
-let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
-console.log((new Date() - t)/1000, pf.loglik);
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-let header = [];
-for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
-  header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
-}
+// let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
+// console.log((new Date() - t)/1000, pf.loglik);
+// const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+// let header = [];
+// for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
+//   header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
+// }
 
-const csvWriter = createCsvWriter({
-    path: './oo.csv',
-    header:header,
-});
+// const csvWriter = createCsvWriter({
+//     path: './oo.csv',
+//     header:header,
+// });
  
  
-csvWriter.writeRecords(pf.filterMean)
-.then(() => {
-    console.log('...Done');
-});
+// csvWriter.writeRecords(pf.filterMean)
+// .then(() => {
+//     console.log('...Done');
+// });
 
