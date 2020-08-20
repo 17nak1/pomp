@@ -11,17 +11,13 @@
 let snippet = {}
 let mathLib = require('./mathLib');
 let { rpois } = require('./rpois');
-
 let nstageE = 3;
 let nstageP = 3;
 let nstageI = 3;
 let nstageH = 3;
 let nstageC = 3;
 let nstageV = 3;
-let pop = 10e6;
 
-let T0 = 75;
-let T1 = 139;
 
 snippet.skeleton = function (states, params, t, dt, covar, args) {
   let d ={};
@@ -602,18 +598,18 @@ snippet.initializer = function(params, covar, args) {
   let fC = params.C0 / args.nstageC;
   let fV = params.V0 / args.nstageV;
   let fM = params.M0;
-  let fR = 1 - fS - nstageE*fE - nstageP*fP - nstageI*fI - nstageH*fH - nstageC*fC - nstageV*fV - nstageE*fEQ - nstageP*fPQ - nstageI*fIQ - fM;
+  let fR = 1 - fS - args.nstageE*fE - args.nstageP*fP - args.nstageI*fI - args.nstageH*fH - args.nstageC*fC - args.nstageV*fV - args.nstageE*fEQ - args.nstageP*fPQ - args.nstageI*fIQ - fM;
   
   initObj["S"] = Math.round(args.pop*fS);
-  for (let i = 0; i < nstageE; i++) initObj[`EQ${i + 1}`] = Math.round(args.pop*fEQ);
-  for (let i = 0; i < nstageP; i++) initObj[`PQ${i + 1}`] = Math.round(args.pop*fPQ);
-  for (let i = 0; i < nstageI; i++) initObj[`IQ${i + 1}`] = Math.round(args.pop*fIQ);
-  for (let i = 0; i < nstageE; i++) initObj[`E${i + 1}`] = Math.round(args.pop*fE);
-  for (let i = 0; i < nstageP; i++) initObj[`P${i + 1}`] = Math.round(args.pop*fP);
-  for (let i = 0; i < nstageI; i++) initObj[`I${i + 1}`] = Math.round(args.pop*fI);
-  for (let i = 0; i < nstageH; i++) initObj[`H${i + 1}`] = Math.round(args.pop*fH);
-  for (let i = 0; i < nstageC; i++) initObj[`C${i + 1}`] = Math.round(args.pop*fC);
-  for (let i = 0; i < nstageV; i++) initObj[`V${i + 1}`] = Math.round(args.pop*fV);
+  for (let i = 0; i < args.nstageE; i++) initObj[`EQ${i + 1}`] = Math.round(args.pop*fEQ);
+  for (let i = 0; i < args.nstageP; i++) initObj[`PQ${i + 1}`] = Math.round(args.pop*fPQ);
+  for (let i = 0; i < args.nstageI; i++) initObj[`IQ${i + 1}`] = Math.round(args.pop*fIQ);
+  for (let i = 0; i < args.nstageE; i++) initObj[`E${i + 1}`] = Math.round(args.pop*fE);
+  for (let i = 0; i < args.nstageP; i++) initObj[`P${i + 1}`] = Math.round(args.pop*fP);
+  for (let i = 0; i < args.nstageI; i++) initObj[`I${i + 1}`] = Math.round(args.pop*fI);
+  for (let i = 0; i < args.nstageH; i++) initObj[`H${i + 1}`] = Math.round(args.pop*fH);
+  for (let i = 0; i < args.nstageC; i++) initObj[`C${i + 1}`] = Math.round(args.pop*fC);
+  for (let i = 0; i < args.nstageV; i++) initObj[`V${i + 1}`] = Math.round(args.pop*fV);
   initObj["M"] = Math.round(args.pop*fM);
   initObj["R"] = Math.round(args.pop*fR);
   
@@ -626,11 +622,11 @@ snippet.initializer = function(params, covar, args) {
   return initObj;
 }
 
-snippet.dmeasure = function (data ,states, params, giveLog = 1) {
+snippet.dmeasure = function (data ,states, params, giveLog = 1, args) {
   let HOSP = [], CARE = [], VENT = [];
-  for(let i = 0; i < nstageH; i++) HOSP.push(states[`H${i + 1}`]);
-  for(let i = 0; i < nstageC; i++) CARE.push(states[`C${i + 1}`]);
-  for(let i = 0; i < nstageV; i++) VENT.push(states[`V${i + 1}`]);
+  for(let i = 0; i < args.nstageH; i++) HOSP.push(states[`H${i + 1}`]);
+  for(let i = 0; i < args.nstageC; i++) CARE.push(states[`C${i + 1}`]);
+  for(let i = 0; i < args.nstageV; i++) VENT.push(states[`V${i + 1}`]);
   
   let lik_reports, lik_deaths, lik_hospital, lik_ICU, lik_ventilator;
   
@@ -649,17 +645,17 @@ snippet.dmeasure = function (data ,states, params, giveLog = 1) {
   }
   
   let TOT_H = 0;
-  for(let i = 0; i < nstageH; i++) {
+  for(let i = 0; i < args.nstageH; i++) {
     TOT_H += HOSP[i];
   }
 
   let TOT_C = 0;
-  for(let i = 0; i < nstageC; i++) {
+  for(let i = 0; i < args.nstageC; i++) {
     TOT_C += CARE[i];
   }
 
   let TOT_V = 0;
-  for(let i = 0; i < nstageV; i++) {
+  for(let i = 0; i < args.nstageV; i++) {
     TOT_V += VENT[i];
   }
 
@@ -691,9 +687,9 @@ snippet.dmeasure = function (data ,states, params, giveLog = 1) {
 snippet.rmeasure = function (states, params) {
   let HOSP = [], CARE = [], VENT = [];
   let results = {};
-  for(let i = 0; i < nstageH; i++) HOSP.push(states[`H${i + 1}`]);
-  for(let i = 0; i < nstageC; i++) HOSP.push(states[`C${i + 1}`]);
-  for(let i = 0; i < nstageV; i++) HOSP.push(states[`V${i + 1}`]);
+  for(let i = 0; i < args.nstageH; i++) HOSP.push(states[`H${i + 1}`]);
+  for(let i = 0; i < args.nstageC; i++) HOSP.push(states[`C${i + 1}`]);
+  for(let i = 0; i < args.nstageV; i++) HOSP.push(states[`V${i + 1}`]);
   
   let reported_cases = states.casesH + states.casesIQ;
   results.reports = rpois(reported_cases  + 1e-6);
@@ -702,17 +698,17 @@ snippet.rmeasure = function (states, params) {
   results.deaths = rpois(reported_deaths  + 1e-6);
   
   let TOT_H = 0;
-  for(let i = 0; i < nstageH; i++) {
+  for(let i = 0; i < args.nstageH; i++) {
   TOT_H += HOSP[i];
   }
 
   let TOT_C = 0;
-  for(i = 0; i < nstageC; i++) {
+  for(i = 0; i < args.nstageC; i++) {
   TOT_C += CARE[i];
   }
 
   let TOT_V = 0;         
-  for(i = 0; i < nstageV; i++) {
+  for(i = 0; i < args.nstageV; i++) {
   TOT_V += VENT[i];
   }
 

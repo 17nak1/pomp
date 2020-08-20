@@ -35,14 +35,14 @@ exports.dmeasureInternal  = function (object, y, x, times, params, give_log) {
   if(ntimes > 1) {
     F = new Array(ntimes);
     for (k = 0; k < ntimes; k++) { // loop over times.Note:Used in trajMatch
-      F[k] = ff(y[k], x[k][0], params,give_log);
+      F[k] = ff(y[k], x[k][0], params,give_log, object.globals);
     }
   } else {
     // ntimes = 1; Note:Used in pfilter and mif2
     F = new Array(nreps);
     for (let j = 0; j < nreps; j++) { // loop over replicates
       if (nrepsp === 1) params[j] = params[0];
-      F[j] = ff(y, x[j], params[j],give_log);
+      F[j] = ff(y, x[j], params[j],give_log, object.globals);
     }
   }
 
