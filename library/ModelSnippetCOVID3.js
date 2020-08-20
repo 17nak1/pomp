@@ -328,35 +328,35 @@ snippet.skeleton = function (states, params, t, dt, covar, args) {
   return d;
 }
 
-snippet.rprocess = function (states, params, t, dt, covar) {
+snippet.rprocess = function (states, params, t, dt, covar, args) {
   
   let SUSC = [states.S];
   let DEAD = [states.M];
   let RCVD = [states.R];
 
   let EXPD = []; PRE = []; INFD = []; HOSP = []; CARE = []; VENT = [];
-  for(let i = 0; i < nstageE; i++) EXPD.push(states[`E${i + 1}`]);
-  for(let i = 0; i < nstageP; i++) PRE.push(states[`P${i + 1}`]);
-  for(let i = 0; i < nstageI; i++) INFD.push(states[`I${i + 1}`]);
-  for(let i = 0; i < nstageH; i++) HOSP.push(states[`H${i + 1}`]);
-  for(let i = 0; i < nstageC; i++) CARE.push(states[`C${i + 1}`]);
-  for(let i = 0; i < nstageV; i++) VENT.push(states[`V${i + 1}`]);
+  for(let i = 0; i < args.nstageE; i++) EXPD.push(states[`E${i + 1}`]);
+  for(let i = 0; i < args.nstageP; i++) PRE.push(states[`P${i + 1}`]);
+  for(let i = 0; i < args.nstageI; i++) INFD.push(states[`I${i + 1}`]);
+  for(let i = 0; i < args.nstageH; i++) HOSP.push(states[`H${i + 1}`]);
+  for(let i = 0; i < args.nstageC; i++) CARE.push(states[`C${i + 1}`]);
+  for(let i = 0; i < args.nstageV; i++) VENT.push(states[`V${i + 1}`]);
   
   let EXPDQ = [], PREQ = [], INFDQ = [];
-  for(let i = 0; i < nstageE; i++) EXPDQ.push(states[`EQ${i + 1}`]);
-  for(let i = 0; i < nstageP; i++) PREQ.push(states[`PQ${i + 1}`]);
-  for(let i = 0; i < nstageI; i++) INFDQ.push(states[`IQ${i + 1}`]);
+  for(let i = 0; i < args.nstageE; i++) EXPDQ.push(states[`EQ${i + 1}`]);
+  for(let i = 0; i < args.nstageP; i++) PREQ.push(states[`PQ${i + 1}`]);
+  for(let i = 0; i < args.nstageI; i++) INFDQ.push(states[`IQ${i + 1}`]);
    
   
   // Different transmission rates
 
   let TOT_PRE = 0;
-  for(let i = 0 ; i < nstageP; i++) {
+  for(let i = 0 ; i < args.nstageP; i++) {
     TOT_PRE += PRE[i];
   }
 
   let TOT_INFD = 0;
-  for(let i = 0; i < nstageI; i++) {
+  for(let i = 0; i < args.nstageI; i++) {
     TOT_INFD += INFD[i];
   }
   
@@ -370,30 +370,30 @@ snippet.rprocess = function (states, params, t, dt, covar) {
   let lambdaP = params.betaI * params.theta * TOT_PRE * (1-PD);
   let lambdaPQ = params.betaI * params.theta * TOT_PRE * PD;
   let dQdt, lambda, lambdaQ;
-  if (t < T0) {
+  if (t < args.T0) {
     dQdt  = mathLib.rgammawn(params.beta_sd, dt)/dt;
-    lambda = ( (lambdaI + lambdaP + params.iota) / pop ) * dQdt;
-    lambdaQ = ( (lambdaPQ) / pop ) * dQdt;
-  } else if (t < T0 + 7.0) {
-    let x = (t-T0) / 7.0;
+    lambda = ( (lambdaI + lambdaP + params.iota) / args.pop ) * dQdt;
+    lambdaQ = ( (lambdaPQ) / args.pop ) * dQdt;
+  } else if (t < args.T0 + 7.0) {
+    let x = (t-args.T0) / 7.0;
     let ss = 3*x*x - 2*x*x*x;
     dQdt  = mathLib.rgammawn(((1-ss) + ss*params.dB0)*params.beta_sd, dt)/dt;
-    lambda = ( ( ((1-ss) + ss*params.dI0) * lambdaI + ((1-ss) + ss*params.dP0) * lambdaP + ((1-ss) + ss*params.dT0)*params.iota ) / pop ) * dQdt;
-    lambdaQ = ( ( ((1-ss) + ss*params.dP0) * lambdaPQ  ) / pop ) * dQdt;
-  } else if (t < T1) {
+    lambda = ( ( ((1-ss) + ss*params.dI0) * lambdaI + ((1-ss) + ss*params.dP0) * lambdaP + ((1-ss) + ss*params.dT0)*params.iota ) / args.pop ) * dQdt;
+    lambdaQ = ( ( ((1-ss) + ss*params.dP0) * lambdaPQ  ) / args.pop ) * dQdt;
+  } else if (t < args.T1) {
     dQdt  = mathLib.rgammawn(params.dB0*params.beta_sd, dt)/dt;
-    lambda = ( ( params.dI0 * lambdaI + params.dP0 * lambdaP + params.dT0 * params.iota ) / pop ) * dQdt;
-    lambdaQ = ( (  params.dP0 * lambdaPQ  ) / pop ) * dQdt;
-  } else if (t < T1 +7.0) {
-    let x = (t-T1) / 7.0;
+    lambda = ( ( params.dI0 * lambdaI + params.dP0 * lambdaP + params.dT0 * params.iota ) / args.pop ) * dQdt;
+    lambdaQ = ( (  params.dP0 * lambdaPQ  ) / args.pop ) * dQdt;
+  } else if (t < args.T1 +7.0) {
+    let x = (t - args.T1) / 7.0;
     let ss = 3*x*x - 2*x*x*x;
     dQdt  = mathLib.rgammawn(((1-ss)*params.dB0 + ss*params.dB1)*params.beta_sd, dt)/dt;
-    lambda = ( ( ((1-ss)*params.dI0 + ss*params.dI1) * params.lambdaI + ((1-ss)*params.dP0 + ss*params.dP1) * lambdaP + ((1-ss)*params.dT0 + ss*params.dT1)*params.iota ) / pop ) * dQdt;
-    lambdaQ = ( ( ((1-ss)*params.dP0 + ss*params.dP1) * params.lambdaPQ  ) / pop ) * dQdt;  
+    lambda = ( ( ((1-ss)*params.dI0 + ss*params.dI1) * params.lambdaI + ((1-ss)*params.dP0 + ss*params.dP1) * lambdaP + ((1-ss)*params.dT0 + ss*params.dT1)*params.iota ) / args.pop ) * dQdt;
+    lambdaQ = ( ( ((1-ss)*params.dP0 + ss*params.dP1) * params.lambdaPQ  ) / args.pop ) * dQdt;  
   } else {
     dQdt  = mathLib.rgammawn(params.dB1*params.beta_sd, dt)/dt;
-    lambda = ( ( params.dI1 * lambdaI + params.dP1 * lambdaP + params.dT1 * params.iota ) / pop ) * dQdt;
-    lambdaQ = ( ( params.dP1 * lambdaPQ) / pop ) * dQdt;
+    lambda = ( ( params.dI1 * lambdaI + params.dP1 * lambdaP + params.dT1 * params.iota ) / args.pop ) * dQdt;
+    lambdaQ = ( ( params.dP1 * lambdaPQ) / args.pop ) * dQdt;
   }
   
   // From class S
@@ -405,172 +405,172 @@ snippet.rprocess = function (states, params, t, dt, covar) {
   mathLib.reulermultinom(2, Math.round(SUSC[0]), 0, dt, 0, rateS, transS);
   
   // From class EQ
-  let  transEQ = new Array(nstageE);
-  let  rateEQ = [nstageE * params.sigma];
-  for (let i = 0; i < nstageE; i++) {
+  let  transEQ = new Array(args.nstageE);
+  let  rateEQ = [args.nstageE * params.sigma];
+  for (let i = 0; i < args.nstageE; i++) {
   // reulermultinom(1, EXPDQ[i], &rateEQ, dt, &transEQ[i]);
     mathLib.reulermultinom(1, Math.round(EXPDQ[i]), 0, dt, i, rateEQ, transEQ);
   }
   
   // From class PQ
-  let transPQ = new Array(nstageP + 1);
-  let ratePQ = [nstageP * params.kappa];
-  for (i = 0; i < nstageP - 1; i++) {
+  let transPQ = new Array(args.nstageP + 1);
+  let ratePQ = [args.nstageP * params.kappa];
+  for (i = 0; i < args.nstageP - 1; i++) {
   // reulermultinom(1, PREQ[i], &ratePQ, dt, &transPQ[i]);
     mathLib.reulermultinom(1, Math.round(PREQ[i]), 0, dt, i, ratePQ, transPQ);
   }
   let ratePQIQH = new Array(2);
-  ratePQIQH[0] = (1 - params.qP) * nstageP * params.kappa;
-  ratePQIQH[1] = params.qP * nstageP * params.kappa;
-  // reulermultinom(2, PREQ[nstageP-1], &ratePQIQH[0], dt, &transPQ[nstageP-1]);
-  mathLib.reulermultinom(2, Math.round(PREQ[nstageP - 1]), 0, dt, nstageP - 1, ratePQIQH, transPQ);
+  ratePQIQH[0] = (1 - params.qP) * args.nstageP * params.kappa;
+  ratePQIQH[1] = params.qP * args.nstageP * params.kappa;
+  // reulermultinom(2, PREQ[args.nstageP-1], &ratePQIQH[0], dt, &transPQ[args.nstageP-1]);
+  mathLib.reulermultinom(2, Math.round(PREQ[args.nstageP - 1]), 0, dt, args.nstageP - 1, ratePQIQH, transPQ);
   
   // From class IQ
-  let transIQ = new Array(nstageI + 1);
-  let rateIQ = [nstageI * params.gammaI];
-  for (let i = 0; i < nstageI - 1; i++) {
+  let transIQ = new Array(args.nstageI + 1);
+  let rateIQ = [args.nstageI * params.gammaI];
+  for (let i = 0; i < args.nstageI - 1; i++) {
   // reulermultinom(1, INFDQ[i], &rateIQ, dt, &transIQ[i]);
     mathLib.reulermultinom(1, Math.round(INFDQ[i]), 0, dt, i, rateIQ, transIQ);
   }
   
   let rateIQRD= new Array(2);
-  rateIQRD[0] = (1 - params.mI) * nstageI * params.gammaI;
-  rateIQRD[1] = params.mI * nstageI * params.gammaI;
-  // reulermultinom(2, INFDQ[nstageI-1], &rateIQRD[0], dt, &transIQ[nstageI-1]);
-  mathLib.reulermultinom(2, Math.round(INFDQ[nstageI-1]), 0, dt, nstageI - 1, rateIQRD, transIQ);
+  rateIQRD[0] = (1 - params.mI) * args.nstageI * params.gammaI;
+  rateIQRD[1] = params.mI * args.nstageI * params.gammaI;
+  // reulermultinom(2, INFDQ[args.nstageI-1], &rateIQRD[0], dt, &transIQ[args.nstageI-1]);
+  mathLib.reulermultinom(2, Math.round(INFDQ[args.nstageI-1]), 0, dt, args.nstageI - 1, rateIQRD, transIQ);
 
   
   // From class E
-  let transE = new Array(nstageE);
-  let rateE = [nstageE * params.sigma];
-  for (let i = 0; i < nstageE; i++) {
+  let transE = new Array(args.nstageE);
+  let rateE = [args.nstageE * params.sigma];
+  for (let i = 0; i < args.nstageE; i++) {
   // reulermultinom(1, EXPD[i], &rateE, dt, &transE[i]);
     mathLib.reulermultinom(1, Math.round(EXPD[i]), 0, dt, i, rateE, transE);
   }
   
   // From class P
-  let transP = new Array(nstageP + 2);
-  let rateP = [nstageP * params.kappa];
-  for (i = 0; i < nstageP - 1; i++) {
+  let transP = new Array(args.nstageP + 2);
+  let rateP = [args.nstageP * params.kappa];
+  for (i = 0; i < args.nstageP - 1; i++) {
   // reulermultinom(1, PRE[i], &rateP, dt, &transP[i]);
     mathLib.reulermultinom(1, Math.round(PRE[i]), 0, dt, i, rateP, transP);  
   }
   
   let ratePIHIQ = new Array(3);
-  ratePIHIQ[0] = (1 - PD) * (1 - params.qP) * nstageP * params.kappa;
-  ratePIHIQ[1] = params.qP * nstageP * params.kappa;
-  ratePIHIQ[2] = PD * (1 - params.qP) * nstageP * params.kappa;
-  // reulermultinom(3, PREQ[nstageP-1], &ratePIHIQ[0], dt, &transP[nstageP-1]);
-  mathLib.reulermultinom(3, Math.round(PRE[nstageP - 1]), 0, dt, nstageP - 1, ratePIHIQ, transP);
+  ratePIHIQ[0] = (1 - PD) * (1 - params.qP) * args.nstageP * params.kappa;
+  ratePIHIQ[1] = params.qP * args.nstageP * params.kappa;
+  ratePIHIQ[2] = PD * (1 - params.qP) * args.nstageP * params.kappa;
+  // reulermultinom(3, PREQ[args.nstageP-1], &ratePIHIQ[0], dt, &transP[args.nstageP-1]);
+  mathLib.reulermultinom(3, Math.round(PRE[args.nstageP - 1]), 0, dt, args.nstageP - 1, ratePIHIQ, transP);
 
   
   // From class I
-  let transI = new Array(nstageI + 1);
-  let rateI = [nstageI * params.gammaI];
-  for (let i = 0; i < nstageI - 1; i++) {
+  let transI = new Array(args.nstageI + 1);
+  let rateI = [args.nstageI * params.gammaI];
+  for (let i = 0; i < args.nstageI - 1; i++) {
   // reulermultinom(1, INFD[i], &rateI, dt, &transI[i]);
     mathLib.reulermultinom(1, Math.round(INFD[i]), 0, dt, i, rateI, transI);
   }
   
   let rateIRD = new Array(2);
-  rateIRD[0] = (1 - params.mI) * nstageI * params.gammaI;
-  rateIRD[1] = params.mI * nstageI * params.gammaI;
-  // reulermultinom(2, INFD[nstageI-1], &rateIRD[0], dt, &transI[nstageI-1]);
-  mathLib.reulermultinom(2, Math.round(INFD[nstageI - 1]), 0, dt, nstageI - 1, rateIRD, transI);
+  rateIRD[0] = (1 - params.mI) * args.nstageI * params.gammaI;
+  rateIRD[1] = params.mI * args.nstageI * params.gammaI;
+  // reulermultinom(2, INFD[args.nstageI-1], &rateIRD[0], dt, &transI[args.nstageI-1]);
+  mathLib.reulermultinom(2, Math.round(INFD[args.nstageI - 1]), 0, dt, args.nstageI - 1, rateIRD, transI);
   
   // From class H
-  let transH = new Array(nstageH + 1);
-  let rateH = [nstageH * params.gammaH];
-  for (let i = 0; i < nstageH - 1; i++) {
+  let transH = new Array(args.nstageH + 1);
+  let rateH = [args.nstageH * params.gammaH];
+  for (let i = 0; i < args.nstageH - 1; i++) {
   // reulermultinom(1, HOSP[i], &rateH, dt, &transH[i]);
     mathLib.reulermultinom(1, Math.round(HOSP[i]), 0, dt, i, rateH, transH);
   }
 
   let rateHRC = new Array(2);
-  rateHRC[0] = (1 - params.qH) * nstageH * params.gammaH;
-  rateHRC[1] = params.qH * nstageH * params.gammaH;
-  // reulermultinom(2, HOSP[nstageH-1], &rateHRC[0], dt, &transH[nstageH-1]);
-  mathLib.reulermultinom(2, Math.round(HOSP[nstageH - 1]), 0, dt, nstageH - 1, rateHRC, transH);  
+  rateHRC[0] = (1 - params.qH) * args.nstageH * params.gammaH;
+  rateHRC[1] = params.qH * args.nstageH * params.gammaH;
+  // reulermultinom(2, HOSP[args.nstageH-1], &rateHRC[0], dt, &transH[args.nstageH-1]);
+  mathLib.reulermultinom(2, Math.round(HOSP[args.nstageH - 1]), 0, dt, args.nstageH - 1, rateHRC, transH);  
   
   // From class C
-  let transC = new Array(nstageC + 2);
-  let rateC = [nstageC * params.gammaC];
-  for (let i = 0; i < nstageC - 1; i++) {
+  let transC = new Array(args.nstageC + 2);
+  let rateC = [args.nstageC * params.gammaC];
+  for (let i = 0; i < args.nstageC - 1; i++) {
   // reulermultinom(1, CARE[i], &rateC, dt, &transC[i]);
     mathLib.reulermultinom(1, Math.round(CARE[i]), 0, dt, i, rateC, transC);
   }
   let rateCRVM = new Array(3);
-  rateCRVM[0] = (1 - params.mC) * nstageC * params.gammaC;
-  rateCRVM[1] = params.qC * nstageC * params.gammaC;
-  rateCRVM[2] = params.mC * (1-params.qC) * nstageC * params.gammaC;
-  // reulermultinom(2, CARE[nstageC-1], &rateCRVM[0], dt, &transC[nstageC-1]);
-  mathLib.reulermultinom(3, Math.round(CARE[nstageC - 1]), 0, dt, nstageC - 1, rateCRVM, transC);
+  rateCRVM[0] = (1 - params.mC) * args.nstageC * params.gammaC;
+  rateCRVM[1] = params.qC * args.nstageC * params.gammaC;
+  rateCRVM[2] = params.mC * (1-params.qC) * args.nstageC * params.gammaC;
+  // reulermultinom(2, CARE[args.nstageC-1], &rateCRVM[0], dt, &transC[args.nstageC-1]);
+  mathLib.reulermultinom(3, Math.round(CARE[args.nstageC - 1]), 0, dt, args.nstageC - 1, rateCRVM, transC);
   
   // From class V
-  let transV = new Array(nstageV + 1);
-  let rateV = [nstageV * params.gammaV];
-  for (i = 0; i < nstageV - 1; i++) {
+  let transV = new Array(args.nstageV + 1);
+  let rateV = [args.nstageV * params.gammaV];
+  for (i = 0; i < args.nstageV - 1; i++) {
   // reulermultinom(1, VENT[i], &rateV, dt, &transV[i]);
     mathLib.reulermultinom(1, Math.round(VENT[i]), 0, dt, i, rateV, transV);
   }
   let rateVRD = new Array(2);
-  rateVRD[0] = (1 - params.mV) * nstageV * params.gammaV;
-  rateVRD[1] = params.mV * nstageV * params.gammaV;
-  // reulermultinom(2, VENT[nstageV-1], &rateVRD[0], dt, &transV[nstageV-1]);
-  mathLib.reulermultinom(2, Math.round(VENT[nstageV - 1]), 0, dt, nstageV - 1, rateVRD, transV);
+  rateVRD[0] = (1 - params.mV) * args.nstageV * params.gammaV;
+  rateVRD[1] = params.mV * args.nstageV * params.gammaV;
+  // reulermultinom(2, VENT[args.nstageV-1], &rateVRD[0], dt, &transV[args.nstageV-1]);
+  mathLib.reulermultinom(2, Math.round(VENT[args.nstageV - 1]), 0, dt, args.nstageV - 1, rateVRD, transV);
 
   
   // Balance the equations
   SUSC[0] -= transS[0];
   EXPD[0] += transS[0];
-  for (let i = 0; i < nstageE; i++) EXPD[i] -= transE[i];
-  for (let i = 1; i < nstageE; i++) EXPD[i] += transE[i-1];
-  PRE[0] += transE[nstageE-1];
-  for (let i = 0; i < nstageP; i++) PRE[i] -= transP[i];
-  for (let i = 1; i < nstageP; i++) PRE[i] += transP[i-1];
-  INFD[0] += transP[nstageP-1];
-  HOSP[0] += transP[nstageP];
-  PRE[nstageP-1] -= transP[nstageP];
-  for (let i = 0; i < nstageI; i++) INFD[i] -= transI[i];
-  for (let i = 1; i < nstageI; i++) INFD[i] += transI[i-1];
-  for (let i = 0; i < nstageH; i++) HOSP[i] -= transH[i];
-  for (let i = 1; i < nstageH; i++) HOSP[i] += transH[i-1];
-  CARE[0] += transH[nstageH];
-  HOSP[nstageH-1] -= transH[nstageH];
-  INFD[nstageI-1] -= transI[nstageI];
-  for (let i = 0; i < nstageC; i++) CARE[i] -= transC[i];
-  for (let i = 1; i < nstageC; i++) CARE[i] += transC[i-1];
-  VENT[0] += transC[nstageC];
-  CARE[nstageC-1] -= transC[nstageC] + transC[nstageC+1];
-  for (let i = 0; i < nstageV; i++) VENT[i] -= transV[i];
-  for (let i = 1; i < nstageV; i++) VENT[i] += transV[i-1];
-  VENT[nstageV-1] -= transV[nstageV];               
-  RCVD[0] += transI[nstageI-1] + transH[nstageH-1] + transC[nstageC-1] + transV[nstageV-1];
-  DEAD[0] += transI[nstageI] + transC[nstageC+1] + transV[nstageV];
+  for (let i = 0; i < args.nstageE; i++) EXPD[i] -= transE[i];
+  for (let i = 1; i < args.nstageE; i++) EXPD[i] += transE[i-1];
+  PRE[0] += transE[args.nstageE-1];
+  for (let i = 0; i < args.nstageP; i++) PRE[i] -= transP[i];
+  for (let i = 1; i < args.nstageP; i++) PRE[i] += transP[i-1];
+  INFD[0] += transP[args.nstageP-1];
+  HOSP[0] += transP[args.nstageP];
+  PRE[args.nstageP-1] -= transP[args.nstageP];
+  for (let i = 0; i < args.nstageI; i++) INFD[i] -= transI[i];
+  for (let i = 1; i < args.nstageI; i++) INFD[i] += transI[i-1];
+  for (let i = 0; i < args.nstageH; i++) HOSP[i] -= transH[i];
+  for (let i = 1; i < args.nstageH; i++) HOSP[i] += transH[i-1];
+  CARE[0] += transH[args.nstageH];
+  HOSP[args.nstageH-1] -= transH[args.nstageH];
+  INFD[args.nstageI-1] -= transI[args.nstageI];
+  for (let i = 0; i < args.nstageC; i++) CARE[i] -= transC[i];
+  for (let i = 1; i < args.nstageC; i++) CARE[i] += transC[i-1];
+  VENT[0] += transC[args.nstageC];
+  CARE[args.nstageC-1] -= transC[args.nstageC] + transC[args.nstageC+1];
+  for (let i = 0; i < args.nstageV; i++) VENT[i] -= transV[i];
+  for (let i = 1; i < args.nstageV; i++) VENT[i] += transV[i-1];
+  VENT[args.nstageV-1] -= transV[args.nstageV];               
+  RCVD[0] += transI[args.nstageI-1] + transH[args.nstageH-1] + transC[args.nstageC-1] + transV[args.nstageV-1];
+  DEAD[0] += transI[args.nstageI] + transC[args.nstageC+1] + transV[args.nstageV];
   
   SUSC[0] -= transS[1];
   EXPDQ[0] += transS[1];
-  for (let i = 0; i < nstageE; i++) EXPDQ[i] -= transEQ[i];
-  for (let i = 1; i < nstageE; i++) EXPDQ[i] += transEQ[i-1];
-  PREQ[0] += transEQ[nstageE-1];
-  for (let i = 0; i < nstageP; i++) PREQ[i] -= transPQ[i];
-  for (let i = 1; i < nstageP; i++) PREQ[i] += transPQ[i-1];
-  PREQ[nstageP-1] -= transPQ[nstageP];  
-  PRE[nstageP-1] -= transP[nstageP+1];
-  INFDQ[0] += transPQ[nstageP-1] + transP[nstageP+1];
-  HOSP[0] += transPQ[nstageP];
-  for (let i = 0; i < nstageI; i++) INFDQ[i] -= transIQ[i];
-  for (let i = 1; i < nstageI; i++) INFDQ[i] += transIQ[i-1];
-  INFDQ[nstageI-1] -= transIQ[nstageI];
-  RCVD[0] += transIQ[nstageI-1];
-  DEAD[0] += transIQ[nstageI];
+  for (let i = 0; i < args.nstageE; i++) EXPDQ[i] -= transEQ[i];
+  for (let i = 1; i < args.nstageE; i++) EXPDQ[i] += transEQ[i-1];
+  PREQ[0] += transEQ[args.nstageE-1];
+  for (let i = 0; i < args.nstageP; i++) PREQ[i] -= transPQ[i];
+  for (let i = 1; i < args.nstageP; i++) PREQ[i] += transPQ[i-1];
+  PREQ[args.nstageP-1] -= transPQ[args.nstageP];  
+  PRE[args.nstageP-1] -= transP[args.nstageP+1];
+  INFDQ[0] += transPQ[args.nstageP-1] + transP[args.nstageP+1];
+  HOSP[0] += transPQ[args.nstageP];
+  for (let i = 0; i < args.nstageI; i++) INFDQ[i] -= transIQ[i];
+  for (let i = 1; i < args.nstageI; i++) INFDQ[i] += transIQ[i-1];
+  INFDQ[args.nstageI-1] -= transIQ[args.nstageI];
+  RCVD[0] += transIQ[args.nstageI-1];
+  DEAD[0] += transIQ[args.nstageI];
   
   
-  states.casesI += transP[nstageP-1];
-  states.casesIQ += transPQ[nstageP-1] + transP[nstageP+1];
-  states.casesH += transP[nstageP] + transPQ[nstageP];
-  states.deathsIIQ += transI[nstageI] + transIQ[nstageI];;
-  states.deathsCV += transC[nstageC+1] + transV[nstageV];
+  states.casesI += transP[args.nstageP-1];
+  states.casesIQ += transPQ[args.nstageP-1] + transP[args.nstageP+1];
+  states.casesH += transP[args.nstageP] + transPQ[args.nstageP];
+  states.deathsIIQ += transI[args.nstageI] + transIQ[args.nstageI];;
+  states.deathsCV += transC[args.nstageC+1] + transV[args.nstageV];
   
   [states.S] = SUSC;
   [states.E1, states.E2, states.E3] = EXPD;
@@ -590,7 +590,7 @@ snippet.rprocess = function (states, params, t, dt, covar) {
 
 snippet.initializer = function(params, covar, args) {
   let initObj = {};
-  // console.log(params, covar, args)
+  
   let fS = params.S0;
   let fEQ = params.EQ0 / args.nstageE;
   let fPQ = params.PQ0 / args.nstageP;

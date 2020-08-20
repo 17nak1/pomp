@@ -22,10 +22,13 @@ out <- create_pomp_model(data = data, covars=covars, t0 = 0, dt=0.1)
 
 model <- out$model
 
-  coef(model) <- mle[c(params_mod,params_ic)]
-  t <- Sys.time()
-  pf <- pfilter(model, filter.mean=T, pred.mean=T,save.states=T,Np=1000);pf@loglik
-  Sys.time()-t
+coef(model) <- mle[c(params_mod,params_ic)]
+t <- Sys.time()
+pf <- pfilter(model, filter.mean=T, pred.mean=T,save.states=T,Np=1000);pf@loglik
+Sys.time()-t
+js=read.csv("../trajMatch/oo.csv")
+plot(pf@filter.mean[2,])
+points(js$EQ1, col="red")
 
 
 

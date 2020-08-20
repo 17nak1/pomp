@@ -58,7 +58,7 @@ exports.mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd, t
       //get initial states
       let initparams = transform ? tparams : params;
       for (let i = 0; i < params.length; i++) {
-        x.push(object.initializer(initparams[i], object.interpolator(object.t0)), object.globals);
+        x.push(object.initializer(initparams[i], object.interpolator(object.t0), object.globals));
       }
     } 
     

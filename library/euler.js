@@ -62,7 +62,7 @@ exports.euler_model_simulator  = function(func, xstart, times, params, deltat, m
       let  interpolatorObj = object.interpolator(t);
       for (let j = 0 ; j < nreps; j++) { // loop over replicates
         let xx = Object.assign({},xt[j])
-        xt[j] = func(xx, params[j], t, dt, interpolatorObj);
+        xt[j] = func(xx, params[j], t, dt, interpolatorObj, object.globals);
       }
       t += dt;
 
