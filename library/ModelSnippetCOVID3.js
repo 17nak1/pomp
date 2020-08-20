@@ -767,203 +767,33 @@ snippet.fromEstimationScale = function(params) {
 }
 
 snippet.determineRW = function(run) {
-  if(run === 1) {
     return ((time) => {
       let rw_size = 0.05;
       let T0 = 75;
-      let betaI = time < T0 ? rw_size : 0
-      let theta = time < T0 ? rw_size : 0
-      let iota = time < T0 ? rw_size : 0
-      let beta_sd = time < T0 ? rw_size : 0
-      let dI = time < T0 ? 0 : rw_size
-      let dP = time < T0 ? 0 : rw_size
-      let dT = time < T0 ? 0 : rw_size
-      let dB = time < T0 ? 0 : rw_size
-      let qP = time < T0 ? rw_size : rw_size
-      let qI = time < T0 ? rw_size : rw_size
-      let qH = time < T0 ? rw_size : rw_size
-      let qC = time < T0 ? rw_size : rw_size
-      let qV = time < T0 ? rw_size : rw_size
-      let sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size
-      let kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size
-      let gammaI = time < T0 ? 0.5*rw_size : 0.5*rw_size
-      let gammaH = time < 93 ? 0 : rw_size
-      let gammaC = time < 93 ? 0 : rw_size
-      let gammaV = time < 93 ? 0 : rw_size
-      let rho = time < T0 ? rw_size : rw_size
-      let TF = time < 35 ? 0 : rw_size;
-      return {
-        betaI : betaI, theta : theta, iota : iota, beta_sd : beta_sd, dI : dI, dP : dP,  dT : dT,  dB : dB, qP : qP, qI : qI,  qH : qH,  qC : qC, qV : qV, sigma : sigma, kappa : kappa, gammaI : gammaI,  gammaH : gammaH, gammaC : gammaC, gammaV : gammaV,  rho : rho, TF: TF};
-    }).toString()
-  } else if (run === 2) {
-    return ((time) => {
-      let rw_size = 0.05;
-      let T0 = 75;
-      let betaI = time < T0? 0 : 0;
-      let theta = time < T0? rw_size : 0;
-      let iota = time < T0? rw_size : 0;
-      let beta_sd = time < T0? rw_size : 0;
-      let dI = time < T0? 0 : rw_size;
-      let dP = time < T0? 0 : rw_size;
-      let dT = time < T0? 0 : rw_size;
-      let dB = time < T0? 0 : rw_size;
-      let qP = time < T0? rw_size : rw_size;
-      let qI = time < T0? rw_size : rw_size;
-      let qH = time < T0? rw_size : rw_size;
-      let qC = time < T0? rw_size : rw_size;
-      let qV = time < T0? rw_size : rw_size;
-      let sigma = time < T0? 0.5*rw_size : 0.5*rw_size;
-      let kappa = time < T0? 0.5*rw_size : 0.5*rw_size;
-      let gammaI = time < T0? 0.5*rw_size : 0.5*rw_size;
-      let gammaH = time < 93? 0 : rw_size;
-      let gammaC = time < 93? 0 : rw_size;
-      let gammaV = time < 93? 0 : rw_size;
-      let rho = time < T0? rw_size : rw_size;
-      let TF = time < 35? 0 : rw_size;
-      return {
-        betaI : betaI, theta : theta, iota : iota, beta_sd : beta_sd, dI : dI, dP : dP,  dT : dT,  dB : dB, qP : qP, qI : qI,  qH : qH,  qC : qC, qV : qV, sigma : sigma, kappa : kappa, gammaI : gammaI,  gammaH : gammaH, gammaC : gammaC, gammaV : gammaV,  rho : rho, TF: TF};
-    }).toString()
-  } else if (run === 3) {
-    return ((time) => {
-      let rw_size = 0.05;
-      let T0 = 75;
-      let betaI = time < T0 ? rw_size : 0;
-      let theta = time < T0 ? 0 : 0;
-      let iota = time < T0 ? rw_size : 0;
-      let beta_sd = time < T0 ? rw_size : 0;
-      let dI = time < T0 ? 0 : rw_size;
-      let dP = time < T0 ? 0 : rw_size;
-      let dT = time < T0 ? 0 : rw_size;
-      let dB = time < T0 ? 0 : rw_size;
-      let qP = time < T0 ? rw_size : rw_size;
-      let qI = time < T0 ? rw_size : rw_size;
-      let qH = time < T0 ? rw_size : rw_size;
-      let qC = time < T0 ? rw_size : rw_size;
-      let qV = time < T0 ? rw_size : rw_size;
-      let sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let gammaI = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let gammaH = time < 93 ? 0 : rw_size;
-      let gammaC = time < 93 ? 0 : rw_size;
-      let gammaV = time < 93 ? 0 : rw_size;
-      let rho = time < T0 ? rw_size : rw_size;
-      let TF = time < 35 ? 0 : rw_size;
-      return {
-        betaI : betaI, theta : theta, iota : iota, beta_sd : beta_sd, dI : dI, dP : dP,  dT : dT,  dB : dB, qP : qP, qI : qI,  qH : qH,  qC : qC, qV : qV, sigma : sigma, kappa : kappa, gammaI : gammaI,  gammaH : gammaH, gammaC : gammaC, gammaV : gammaV,  rho : rho, TF: TF};
-    }).toString()
-  } else if (run === 4) {
-    return ((time) => {
-      let rw_size = 0.05;
-      let T0 = 75;
-      let betaI = time < T0 ? rw_size : 0;
-      let theta = time < T0 ? rw_sd : 0;
-      let iota = time < T0 ? 0 : 0;
-      let beta_sd = time < T0 ? rw_size : 0;
-      let dI = time < T0 ? 0 : rw_size;
-      let dP = time < T0 ? 0 : rw_size;
-      let dT = time < T0 ? 0 : rw_size;
-      let dB = time < T0 ? 0 : rw_size;
-      let qP = time < T0 ? rw_size : rw_size;
-      let qI = time < T0 ? rw_size : rw_size;
-      let qH = time < T0 ? rw_size : rw_size;
-      let qC = time < T0 ? rw_size : rw_size;
-      let qV = time < T0 ? rw_size : rw_size;
-      let sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let gammaI = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let gammaH = time < 93 ? 0 : rw_size;
-      let gammaC = time < 93 ? 0 : rw_size;
-      let gammaV = time < 93 ? 0 : rw_size;
-      let rho = time < T0 ? rw_size : rw_size;
-      let TF = time < 35 ? 0 : rw_size;
-      return {
-        betaI : betaI, theta : theta, iota : iota, beta_sd : beta_sd, dI : dI, dP : dP,  dT : dT,  dB : dB, qP : qP, qI : qI,  qH : qH,  qC : qC, qV : qV, sigma : sigma, kappa : kappa, gammaI : gammaI,  gammaH : gammaH, gammaC : gammaC, gammaV : gammaV,  rho : rho, TF: TF};
-    }).toString()
-  } else if (run === 5) {
-    return ((time) => {
-      let rw_size = 0.05;
-      let T0 = 75;
-      let betaI = time < T0 ? rw_size : 0;
-      let theta = time < T0 ? rw_size : 0;
-      let iota = time < T0 ? rw_size : 0;
-      let beta_sd = time < T0 ? 0 : 0;
-      let dI = time < T0 ? 0 : rw_size;
-      let dP = time < T0 ? 0 : rw_size;
-      let dT = time < T0 ? 0 : rw_size;
-      let dB = time < T0 ? 0 : rw_size;
-      let qP = time < T0 ? rw_size : rw_size;
-      let qI = time < T0 ? rw_size : rw_size;
-      let qH = time < T0 ? rw_size : rw_size;
-      let qC = time < T0 ? rw_size : rw_size;
-      let qV = time < T0 ? rw_size : rw_size;
-      let sigma = time < T0 ? 0.5*rw_si : 0.5*rw_size;
-      let kappa = time < T0 ? 0.5*rw_si : 0.5*rw_size;
-      let gammaI = time < T0 ? 0.5*rw_si : 0.5*rw_size;
-      let gammaH = time < 93 ? 0 : rw_size;
-      let gammaC = time < 93 ? 0 : rw_size;
-      let gammaV = time < 93 ? 0 : rw_size;
-      let rho = time < T0 ? rw_size : rw_size;
-      let TF = time < 35 ? 0 : rw_size;
-      return {
-        betaI : betaI, theta : theta, iota : iota, beta_sd : beta_sd, dI : dI, dP : dP,  dT : dT,  dB : dB, qP : qP, qI : qI,  qH : qH,  qC : qC, qV : qV, sigma : sigma, kappa : kappa, gammaI : gammaI,  gammaH : gammaH, gammaC : gammaC, gammaV : gammaV,  rho : rho, TF: TF};
-    }).toString()
-  } else if (run === 6) {
-    return ((time) => {
-      let rw_size = 0.05;
-      let T0 = 75;
-      let betaI = time < T0 ? rw_size : 0;
-      let theta = time < T0 ? rw_size : 0;
-      let iota = time < T0 ? rw_size : 0;
-      let beta_sd = time < T0 ? rw_size : 0;
-      let dI = time < T0 ? 0 : 0;
-      let dP = time < T0 ? 0 : rw_size;
-      let dT = time < T0 ? 0 : rw_size;
-      let dB = time < T0 ? 0 : rw_size;
-      let qP = time < T0 ? rw_size : rw_size;
-      let qI = time < T0 ? rw_size : rw_size;
-      let qH = time < T0 ? rw_size : rw_size;
-      let qC = time < T0 ? rw_size : rw_size;
-      let qV = time < T0 ? rw_size : rw_size;
-      let sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let gammaI = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let gammaH = time < 93 ? 0 : rw_size;
-      let gammaC = time < 93 ? 0 : rw_size;
-      let gammaV = time < 93 ? 0 : rw_size;
-      let rho = time < T0 ? rw_size : rw_size;
-      let TF = time < 35 ? 0 : rw_size;
-      return {
-        betaI : betaI, theta : theta, iota : iota, beta_sd : beta_sd, dI : dI, dP : dP,  dT : dT,  dB : dB, qP : qP, qI : qI,  qH : qH,  qC : qC, qV : qV, sigma : sigma, kappa : kappa, gammaI : gammaI,  gammaH : gammaH, gammaC : gammaC, gammaV : gammaV,  rho : rho, TF: TF};
-    }).toString()
-  } else if (run === 22) {
-    return ((time) => {
-      let rw_size = 0.05;
-      let T0 = 75;
-      let betaI = time < T0 ? rw_size : 0;
-      let theta = time < T0 ? rw_size : 0;
-      let iota = time < T0 ? rw_size : 0;
-      let beta_sd = time < T0 ? rw_size : 0;
-      let dI = time < T0 ? 0 : rw_size;
-      let dP = time < T0 ? 0 : rw_size;
-      let dT = time < T0 ? 0 : rw_size;
-      let dB = time < T0 ? 0 : rw_size;
-      let qP = time < T0 ? rw_size : rw_size;
-      let qI = time < T0 ? rw_size : rw_size;
-      let qH = time < T0 ? rw_size : rw_size;
-      let qC = time < T0 ? rw_size : rw_size;
-      let qV = time < T0 ? rw_size : rw_size;
-      let sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size;
-      let gammaI = time < T0 ? 0 : 0;
-      let gammaH = time < 93 ? 0 : rw_size;
-      let gammaC = time < 93 ? 0 : rw_size;
-      let gammaV = time < 93 ? 0 : rw_size;
-      let rho = time < T0 ? rw_size : rw_size;
-      let TF = time < 35 ? 0 : rw_size;
-      return {
-        betaI : betaI, theta : theta, iota : iota, beta_sd : beta_sd, dI : dI, dP : dP,  dT : dT,  dB : dB, qP : qP, qI : qI,  qH : qH,  qC : qC, qV : qV, sigma : sigma, kappa : kappa, gammaI : gammaI,  gammaH : gammaH, gammaC : gammaC, gammaV : gammaV,  rho : rho, TF: TF};
-    }).toString()
-  }
+      let d ={};
+      d.dI0 = time < T0 ? 0 : rw_size
+      d.dP0 = time < T0 ? 0 : rw_size
+      d.dT0 = time < T0 ? 0 : rw_size
+      d.dB0 = time < T0 ? 0 : rw_size
+      d.dI1 = time < T0 ? 0 : rw_size
+      d.dP1 = time < T0 ? 0 : rw_size
+      d.dT1 = time < T0 ? 0 : rw_size
+      d.dB1 = time < T0 ? 0 : rw_size
+      d.qP = time < T0 ? rw_size : rw_size
+      d.qH = time < T0 ? rw_size : rw_size
+      d.qC = time < T0 ? rw_size : rw_size
+      d.mI=time < T0 ? rw_size : rw_size
+      d.mC=time < T0 ? rw_size : rw_size
+      d.mV=time < T0 ? rw_size : rw_size
+      d.sigma = time < T0 ? 0.5*rw_size : 0.5*rw_size
+      d.kappa = time < T0 ? 0.5*rw_size : 0.5*rw_size
+      d.gammaI = time < T0 ? 0.5*rw_size : 0.5*rw_size
+      d.gammaH = time < 93 ? 0 : rw_size
+      d.gammaC = time < 93 ? 0 : rw_size
+      d.gammaV = time < 93 ? 0 : rw_size
+      d.rho = time < T0 ? rw_size : rw_size
+      d.TF = time < 35 ? 0 : rw_size;
+      return d}).toString()
 }
 
 
