@@ -22,7 +22,7 @@ exports.dmeasureInternal  = function (object, y, x, times, params, give_log) {
   if (ntimes < 1)
     throw new Error("In 'dmeasureInternal': times is not defined");
   
-  let nrepsx = x[0].length? x[0].length : x.length;; //Np
+  let nrepsx = x[0].length? x[0].length : x.length; //Np
   let nrepsp = Object.keys(params).length;
   
   nreps = (nrepsp > nrepsx) ? nrepsp : nrepsx;
@@ -37,6 +37,7 @@ exports.dmeasureInternal  = function (object, y, x, times, params, give_log) {
     for (k = 0; k < ntimes; k++) { // loop over times.Note:Used in trajMatch
       F[k] = ff(y[k], x[k][0], params,give_log);
     }
+    
   } else {
     // ntimes = 1; Note:Used in pfilter and mif2
     F = new Array(nreps);
@@ -44,6 +45,7 @@ exports.dmeasureInternal  = function (object, y, x, times, params, give_log) {
       if (nrepsp === 1) params[j] = params[0];
       F[j] = ff(y, x[j], params[j],give_log);
     }
+
   }
 
   return F;

@@ -16,30 +16,30 @@
  * @param {string} method 
  * @param {object} object
  */
-exports.euler_model_simulator  = function(func, xstart, times, params, deltat, method, object)
-{
+exports.euler_model_simulator  = function(func, xstart, times, params, deltat, method, object) {
+  
   let zeronames = object.zeronames; 
   if (deltat <= 0)
     throw new Error("In euler.js: 'delta.t' should be a positive number");
-  let nvars = Object.keys(xstart[0]).length;
+  
   let nreps = xstart.length;
-  let npars = Object.keys(params[0]).length;
   let ntimes = times.length;
 
   let t = times[0];
   let xt = xstart;
-
+  
   for (let step = 1; step < ntimes; step++) {
     if (t > times[step]) {
       throw new Error("In euler.js: 'times' is not an increasing sequence");
     }
     
-    // set accumulator variables to zero
-    for (j = 0; j < nreps; j++) {
-      for (i = 0; i < zeronames.length; i++) {
+    // set accumulator variables to zero in all reps
+    for (let j = 0; j < nreps; j++) {
+      for (let i = 0; i < zeronames.length; i++) {
          xt[j][zeronames[i]] = 0;
       } 
     }
+    let nstep, dt;
     switch (method) {
       case 1:			// one step
         dt = times[step] - t;
@@ -56,11 +56,13 @@ exports.euler_model_simulator  = function(func, xstart, times, params, deltat, m
       default:
         throw new Error("In euler.js: unrecognized 'method'"); // # nocov
     }
-
+    
     for (let k = 0; k < nstep; k++) { // loop over Euler steps
+      if (typeof progress === 'function') progress();
       let  interpolatorObj = object.interpolator(t);
       for (let j = 0 ; j < nreps; j++) { // loop over replicates
-         xt[j] = func(xt[j], params[j], t, dt, interpolatorObj);
+        let xx = Object.assign({},xt[j])
+        xt[j] = func(xx, params[j], t, dt, interpolatorObj);
       }
       t += dt;
 

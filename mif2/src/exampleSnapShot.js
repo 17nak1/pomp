@@ -1,14 +1,14 @@
 /**
- * Complete example using mif2 and replicating pfilter
+ * Example of using mif2
  *
  */
-let rootDir ='.'
+const { mif2 } = require('./mif2SnapShots.js');
+const snippet = require('../library/modelSnippet.js');
 const fs = require('fs');
-let pomp = require('./library/pomp.js');
-const { mif2 } = require('./mif2/mif2.js');
-const { pfilter } = require('./pfilter/pfilter.js');
-const snippet = require('./library/modelSnippet.js');
-const { coef } = require("./mif2/mif2Helpers.js");
+const { coef } = require("./mif2Helpers.js");
+let pomp = require('../library/pomp.js');
+
+rootDir = '..'
 
 let dataCases = [];
 let dataCasesTimes = [];
@@ -65,9 +65,12 @@ for (let i = 1; i < lines.length ; i++) {
     currentParams.push(data)
   }
 }
-
 let rw_sd = snippet.determineRW("R0")
 currentParams = currentParams[0]//Only for this example, we need loop over currentParams
+let params_ic_fit = [];
+let params_mod_fit = ["R0", "amplitude", "mu", "rho", "psi"];
+let cool_fraction = 0.05;
+let Nmif = 10;
 
 const mypomp = new pomp({
   data :  dataCases,
@@ -89,31 +92,28 @@ const mypomp = new pomp({
   obsnames: dataCases_name,
 });
 
-let params_ic_fit = [];
-let params_mod_fit = ["R0", "amplitude", "mu", "rho", "psi"];
-let cool_fraction = 0.05;
-
-let t = new Date();
-
+let t = new Date()
 mypomp.params = currentParams;//coef
-let mf = mif2(
-  {object: mypomp,
-  Nmif: 1,
-  start: currentParams,
-  transform: true,
-  ivps: params_ic_fit,
-  pars: params_mod_fit,
-  rw_sd: rw_sd,
-  Np: 200,
-  varFactor: 2,
-  coolingType: "hyperbolic",
-  coolingFraction: cool_fraction
-  }
-)
-console.log((new Date() - t)/1000, coef(mf));
+let mf = {snapShotStart:0};
+while (mf.snapShotStart < Nmif) {
+  mf = mif2({
+    object: mypomp,
+    Nmif: Nmif,
+    start: currentParams,
+    transform: true,
+    ivps: params_ic_fit,
+    pars: params_mod_fit,
+    rw_sd: rw_sd,
+    Np: 100,
+    varFactor: 2,
+    coolingType: "hyperbolic",
+    coolingFraction: cool_fraction,
+    snapShotStart: mf.snapShotStart,
+    paramMatrix: mf.paramMatrix,
+    convRec: mf.convRec,
+    _indices: mf._indices,
+  })
+}
+console.log((new Date() - t)/1000, mf.loglik, coef(mf));
 
-t = new Date()
-let pf = pfilter({object: mypomp, params: coef(mf), Np: 200, filterMean: true, predMean: true, maxFail: 3000})
-console.log(new Date() - t, pf.loglik)
 
-  

@@ -93,12 +93,12 @@ exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar
 
   let xpm;
   if (predmean || predvar) {
-    xpm = new Array(lv);
+    xpm = {}//new Array(lv);
   }
 
   let xpv;
   if (predvar) {
-    xpv = new Array(lv);
+    xpv = {}//new Array(lv);
   }
 
   let xfm;
@@ -106,7 +106,7 @@ exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar
     if (do_rw) {
       xfm = new Array(nvars + npars);
     } else {
-      xfm = new Array(nvars);
+      xfm = {}//new Array(nvars);
     }
   }
 
@@ -157,7 +157,7 @@ exports.pfilter_computations = function (x, params, Np, rw_sd, predmean, predvar
   let offset;
   
   if (do_rw) {
-    console.error("Non zero rw_sd is not translated")
+    throw new Error("Non zero rw_sd is not translated in pfilterComputations")
     for (let j = 0; j < nrw; j++) {
       offset = pidx[j];		// position of the parameter
 

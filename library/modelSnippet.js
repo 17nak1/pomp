@@ -62,13 +62,13 @@ snippet.rprocess = function (states, params, t, dt, covar) {
   return {S, E, I, R, H}
 }
 
-snippet.initz = function(args, covar) {
+snippet.initializer = function(params, covar, args) {
   
-  let m = covar.pop / (args.S_0 + args.E_0 + args.R_0 + args.I_0);
-  let S = Math.round(m * args.S_0);
-  let E = Math.round(m * args.E_0);
-  let I = Math.round(m * args.I_0);
-  let R = Math.round(m * args.R_0);
+  let m = covar.pop / (params.S_0 + params.E_0 + params.R_0 + params.I_0);
+  let S = Math.round(m * params.S_0);
+  let E = Math.round(m * params.E_0);
+  let I = Math.round(m * params.I_0);
+  let R = Math.round(m * params.R_0);
   let H = 0;
   return {S: S, E: E, I: I, R: R, H: H};
 }
@@ -116,7 +116,7 @@ snippet.paramsIc = ["S_0", "E_0", "I_0", "R_0"];
 snippet.zeronames = ["H"];
 snippet.statenames = ["S","E","I","R","H"];
 
-snippet.toEst = function(params) {
+snippet.toEstimationScale = function(params) {
   let mu = Math.log(params.mu);
   let psi = Math.log(params.psi);
   let sigma = Math.log(params.sigma);
@@ -130,7 +130,7 @@ snippet.toEst = function(params) {
      rho: rho, psi: psi, S_0: states[0], E_0: states[1], I_0: states[2], R_0: states[3]};
 }
 
-snippet.fromEst = function(params) {
+snippet.fromEstimationScale = function(params) {
   let mu = Math.exp(params.mu);
   let psi = Math.exp(params.psi);
   let sigma = Math.exp(params.sigma);
@@ -145,9 +145,10 @@ snippet.fromEst = function(params) {
 }
 // Determine Random Walk
 snippet.determineRW = function(param) {
-  let rwSize = 0.05;
-  if(param = "R0") {
-    return function(time) {
+  
+  if(param === "R0") {
+    return ((time) => {
+      let rwSize = 0.05;
       let R0 = time < 1944 ? 0 : rwSize;
       let amplitude = time < 1944 ? 0 : rwSize;
       let mu = time < 1944 ? 0 : rwSize;
@@ -158,7 +159,7 @@ snippet.determineRW = function(param) {
       let I_0 = time < 1944 ? 0 : rwSize;
       let R_0 = time < 1944 ? 0 : rwSize;
       return {R0: R0, amplitude: amplitude, mu: mu, rho: rho, psi: psi, S_0: S_0, E_0: E_0, I_0: I_0, R_0};
-    }
+    }).toString()
   }  
 }
 

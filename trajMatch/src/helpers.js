@@ -1,6 +1,6 @@
 /**
- *  @file             mif2Helpers.js   
- *                    mif2 depentent functions.  
+ *  @file             Helpers.js   
+ *                    depentent functions.  
  *                         
  *  @references       https://github.com/kingaa/pomp                  
  *
@@ -49,6 +49,7 @@ const cooling = function(type, fraction, ntimes) {
  *  An array of objects of transformed parameters
  */
 const partrans = function (pomp, params, dir = ["fromEstimationScale","toEstimationScale"]) {
+  if (!Array.isArray(params)) params = [params];
   let transParam = [].concat(params);
   switch(dir){
   case "fromEstimationScale":
@@ -64,7 +65,7 @@ const partrans = function (pomp, params, dir = ["fromEstimationScale","toEstimat
     break;
   } 
   
-  if (transParam.length === 1) return [...transParam];
+  if (transParam.length === 1) return transParam[0];
   return transParam;
 }
 /**

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- @file      index.html
+  --
+  -- DCP Webpack Boilerplate - This is a starter project for using DCP
+  -- 
+  -- @author Ryan Rossiter, ryan@kingsds.network
+  -- @date   Sept 2019
+  --
+  -->
+<head>
+  <meta charset="utf-8">
+  <!-- <script src="http://portal.devserver.office.kingsds.network/etc/dcp-config.js"></script> -->
+  <script src="http://scheduler.nazila.office.kingsds.network/dcp-client/dcp-client.js"></script>
+  <!-- <script src="https://portal.distributed.computer/etc/dcp-config.js"></script> -->
+  <!-- <script src="https://scheduler.distributed.computer/dcp-client/dcp-client.js"></script> -->
+  <script src="js/bundle.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <h2>DCP Demo</h2>
+  <input id="file1-upload" type="file" >
+  <input id="file2-upload" type="file" >
+  <input id="file3-upload" type="file" style="display: none;">
+  <button id="go-button">Go!</button>
+  <hr />
+  <div class="col-sm-6">
+    <section >
+      <div id="plotContainer">
+        <div id="graphContainer" >
+          <div id="fullGraph"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>

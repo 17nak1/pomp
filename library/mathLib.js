@@ -9,25 +9,67 @@
 
 let mathLib = {}
 
-let erf = require('math-erf')
-let { rbinom } = require('./rbinom')
+let erf = require('math-erf');
+let { rbinom } = require('./rbinom');
 let libUnif = require('lib-r-math.js');
 const { rng: { MersenneTwister, timeseed }} = libUnif
-let U = new MersenneTwister(0); 
+let U = new MersenneTwister(0);
+
+const {
+  Gamma,
+  rng: {
+    LecuyerCMRG,
+    normal: { BoxMuller }
+  }
+} = libUnif
+const lc = new LecuyerCMRG(1234);
+const { rgamma } = Gamma(new BoxMuller(lc));
+
+mathLib.rnorm = function (mu = 0, sd = 1) {
+  let val = Math.sqrt(-2 * Math.log(rng())) * Math.cos(2 * pi * rng());
+  return val * sd + mu
+}
 
 // Normal  distribution function
 mathLib.pnorm = function (x, mu = 0, sd = 1, lower_tail = true, give_log = false) {
   if (sd < 0) {
-    return NaN
+    return NaN;
   }
-  let ans = 1 / 2 * (1 + erf((x - mu) / sd / Math.sqrt(2)))
+  let ans = 1 / 2 * (1 + erf((x - mu) / sd / Math.sqrt(2)));
   if (!lower_tail) {
-    ans = 1 - ans
+    ans = 1 - ans;
   }
   if (give_log) {
-    ans = Math.log(ans)
+    ans = Math.log(ans);
   }
-  return ans
+  return ans;
+}
+
+/** 
+ * Density function for the Poisson distribution with parameter lambda.
+ *  x : vector of (non-negative integer) quantiles.
+ *  lambda : vector of (non-negative) means.
+ *  give_log : output is in log scale.
+ */
+mathLib.dpois = function (x, lambda, give_log = 1) {
+  let ans, logAns, total = 0;
+  if (isNaN(x) || isNaN(lambda) || lambda < 0) {
+    return NaN;
+  }
+  if (!Number.isInteger(x)) {
+    return 0;
+  }
+  if (x < 0 || !isFinite(x)) {
+    return 0;
+  }
+  x = Math.round(x);
+  ans = -lambda + x * Math.log(lambda);
+  for (let i = 1; i <= x; i++) {
+    total += Math.log(i);
+  }
+  logAns = ans - total;
+  logAns = (give_log) ? logAns : Math.exp(logAns);
+  return logAns;
 }
 
 // Resampling function
@@ -162,17 +204,23 @@ mathLib.toLogBarycentric = function (xN) {
 }
 
 mathLib.logit = function (p) {
-  return Math.log(p / (1 - p))
+  return Math.log(p / (1 - p));
+}
+
+mathLib.plogis = function (x) {
+  return (1+ Math.tanh(x/2))/2;
 }
 
 mathLib.expit = function (x) {
-  return 1 / (1 + Math.exp(-x))
+  return 1 / (1 + Math.exp(-x));
 }
 
+mathLib.qlogis = mathLib.logit;
+
+
 mathLib.rgammawn = function (sigma, dt) {
-  var sigmasq
-  sigmasq = Math.pow(sigma, 2)
-  return (sigmasq > 0) ? rgamma(1, dt / sigmasq, sigmasq) : dt
+  let sigmasq = Math.pow(sigma, 2);
+  return (sigmasq > 0) ? rgamma(1, dt / sigmasq, sigmasq) : dt;
 }
 
 mathLib.logMeanExp = function (x) {
@@ -182,7 +230,7 @@ mathLib.logMeanExp = function (x) {
   return mx + Math.log(q / x.length)
 }
 
-mathLib.mean = function(x , w = 0) {
+mathLib.mean = function (x , w = 0) {
   let nrow = x.length;
   let ncol = Object.keys(x[0]).length;
   let mean = {};

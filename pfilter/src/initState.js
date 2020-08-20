@@ -28,7 +28,7 @@ const do_init_state = function (object, params, ns) {
   let paramsObj = params[0];
   if (ns % nrep != 0) 
     throw new Error("in 'init.state': number of desired state-vectors 'nsim' is not a multiple of ncol('params')");
-
-  let initVector =  object.initializer(paramsObj, object.interpolator(object.t0));  
+  let args = object.globals;
+  let initVector =  object.initializer(paramsObj, object.interpolator(object.t0), args);  
   return  new Array(ns).fill(null).map(a => initVector);
 }
