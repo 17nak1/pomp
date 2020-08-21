@@ -1,163 +1,116 @@
-/**
- * Complete example using mif2 and replicating pfilter
- *
- */
-let rootDir ='.'
+
 const fs = require('fs');
-const { mif2 } = require('./mif2/src/mif2.js');
+const { trajMatch } = require('./trajMatch/src/trajMatch.js');
+
+const create_dataset = require('./library/CreateDataset.js');
+const create_covars = require('./library/CreateCovars.js');
+const snippet = require('./library/modelSnippetCOVID3.js');
+const { coef } = require("./library/helpers");
+const sobolSeq =require('./library/generate-sobol/sobolSeq.js');
 const { pfilter } = require('./pfilter/src/pfilter.js');
-const snippet = require('./library/ModelSnippetCOVID3.js');
-const { coef } = require("./mif2/src/mif2Helpers.js");
+const { mif2 } = require('./mif2/src/mif2.js');
 
-let dataCases = [];
-let dataCasesTimes = [];
-let dataCovar = [];
-let dataCovarTimes = [];
-let currentParams = []; 
+let endTime = "2020-07-16";
+SobolNumberOfPoints = 10;
+let lowerBounds = {betaI: 0, theta: 0, iota: 0, beta_sd: 0,
+  dI0: 0, dP0: 0, dT0: 0, dB0: 0,
+  dI1: 0, dP1: 0, dT1: 0, dB1: 0,
+  qP: 0, qH: 0, qC: 0.5, mI: 0, mC: 0, mV: 0.5,
+  sigma: 1/5, kappa: 1/1, gammaI: 1/5, gammaH: 1/5, gammaC: 1/10, gammaV: 1/10, rho: 0, TF: 4e3,
+  S0: 1,EQ0: 0,PQ0: 0,IQ0: 0,E0: 0,P0: 0,I0: 0,H0: 0,C0: 0,V0: 0,M0: 0}
 
-// 1st data set; read all rows and delete last one if it is ['']
-let temp, file;
-let data;
-file = fs.readFileSync(rootDir+'/samples/covars.csv').toString();
-let lines = file.split(/\r\n|\n/);
-let dataCovar_name = lines[0].replace(/['"]+/g, '').split(',');
-dataCovar_name.shift();
-for (let i = 1; i < lines.length ; i++) {
-  temp = lines[i].split(',');
-  if(temp.length > 1) {
-    temp = temp.map(x => Number(x));
-    dataCovarTimes.push(temp[0]);
-    data = {};
-    for(let j = 0; j < temp.length - 1; j++){
-      data[dataCovar_name[j]] = temp[j + 1];
-    }
-    dataCovar.push(data)
-  }
+let upperBounds = {betaI: 1, theta: 1, iota: 100, beta_sd: 0,
+  dI0: 0.6, dP0: 0.6, dT0: 0.6, dB0: 0,
+  dI1: 0.5, dP1: 0.5, dT1: 0.5, dB1: 0,
+  qP: 0.5, qH: 1, qC: 1, mI: 0.1, mC: 1, mV: 1,
+  sigma: 1/5, kappa: 1/1, gammaI: 1/5, gammaH: 1/1, gammaC: 1/1, gammaV: 1/1,rho: 1, TF: 8e3,
+  S0: 1,EQ0: 0,PQ0: 0,IQ0: 0,E0: 0,P0: 0,I0: 0,H0: 0,C0: 0,V0: 0,M0: 0}
+
+let sobolSet = sobolSeq.sobolDesign( lowerBounds, upperBounds, SobolNumberOfPoints);
+
+paramsFixed = ["beta_sd","dB0", "dB1","sigma","kappa"];
+selectedParams = [...snippet.paramsMod, ...snippet.paramsIc];
+let paramsFit = snippet.paramsMod;
+for (let i = 0; i < paramsFixed.length; i++) {
+  paramsFit = paramsFit.filter(e => e !== paramsFixed[i])
 }
 
-//* 2nd data set
-file = fs.readFileSync(rootDir+'/samples/data.csv').toString()
-lines = file.split(/\r\n|\n/);
-let dataCases_name = lines[0].replace(/['"]+/g, '').split(',');
-dataCases_name.shift();
-for (let i = 1; i < lines.length ; i++) {
-  temp = lines[i].split(',');
-  if(temp.length > 1) {
-    temp = temp.map(x => Number(x));
-    dataCasesTimes.push(temp[0]);
-    data = {};
-    for(let j = 0; j < temp.length - 1; j++){
-      data[dataCases_name[j]] = temp[j + 1];
-    }
-    dataCases.push(data)
-  }
-}
+// Generate covars, data and pomp object
+data = create_dataset('../samples/ON.csv','../samples/covidtesting.csv', endTime)
+covars = create_covars('../samples/covidtesting.csv', endTime)
+let t1 = 75;
+let t2 = 139;
+globals = { nstageE: 3, nstageP: 3, nstageI: 3, nstageH: 3, nstageC: 3, nstageV: 3, pop: 10e6, T0: 75, T1: 139 };
 
-//* 3nd data set and names
-file = fs.readFileSync(rootDir+'/samples/initial_parameters.csv').toString()
-lines = file.split(/\r\n|\n/);
-let currentParams_name = lines[0].replace(/['"]+/g, '').split(',');
-for (let i = 1; i < lines.length ; i++) {
-  temp = lines[i].split(',');
-  if(temp.length > 1) {
-    temp = temp.map(x => Number(x));
-    data = {};
-    for(let j = 0; j < temp.length; j++){
-      data[currentParams_name[j]] = temp[j];
-    }
-    currentParams.push(data)
-  }
-}
+let dataHeader = data.shift();
+let dataCases = data.map((x,i,arr) => { 
+  a = {};
+  a[dataHeader[1]] = x[1];
+  a[dataHeader[2]] = x[2];
+  a[dataHeader[3]] = x[3];
+  a[dataHeader[4]] = x[4];
+  a[dataHeader[5]] = x[5];
+  return a;});
+let dataCasesTimes = data.map((x,i,arr) => x[0]);
+dataHeader.shift();
 
-currentParams = {
-  betaI:1.40758806343178,
-  iota:0.0177042779901833,
-  beta_sd:0,
-  sigma:0.2,
-  kappa:1,
-  gammaI:0.172133302616885,
-  gammaH:0.635123961314889,
-  gammaC:1.31234713108046,
-  gammaV:0.327003197582952,
-  TF:16031.6700539306,
-  rho:0.487576658764406,
-  theta:0.415700726852156,
-  dI0:0.485528264998708,
-  dP0:0.176249510892225,
-  dT0:0.263185388981837,
-  dB0:0,
-  dI1:0.331872295141556,
-  dP1:0.259732942470986,
-  dT1:0.630072923852895,
-  dB1:0,
-  qP:0.722056284667341,
-  qH:0.137405612125941,
-  qC:0.883271524025973,
-  mI:0.00550468107974399,
-  mC:0.197242061100997,
-  mV:0.685825470240576,
-  S0:1,
-  EQ0:0,
-  PQ0:0,
-  IQ0:0,
-  E0:0,
-  P0:0,
-  I0:0,
-  H0:0,
-  C0:0,
-  V0:0,
-  M0:0}
-  
-let globals = { nstageE: 3, nstageP: 3, nstageI: 3, nstageH: 3, nstageC: 3, nstageV: 3, pop: 10e6, T0: 75, T1: 139 };
+let covarHeader = covars.shift();
+let dataCovar = covars.map((x,i,arr) => { 
+  a = {};
+  a[covarHeader[1]] = x[1];
+  return a;});
+let dataCovarTimes = covars.map((x,i,arr) => x[0]);
+covarHeader.shift();
 
-let cool_fraction = 0.05;
 const pompData = {
   data :  dataCases,
   times:  dataCasesTimes,
   t0: 0,
+  skeletonDetail:  { type:"map", deltaT: 0.1 },
   rprocessDetail:  { type:"euler_sim", deltaT: 0.1 },
   covar: dataCovar,
   tcovar: dataCovarTimes,
   zeronames: snippet.zeronames,
   statenames: snippet.statenames,
   paramnames: [...snippet.paramsMod, ...snippet.paramsIc],
-  covarnames: dataCovar_name,
-  obsnames: dataCases_name,
+  covarnames: covarHeader,
+  obsnames: dataHeader,
   globals: globals,
 };
-let t = new Date();
-// let mf = mif2(currentParams,
+let tm = trajMatch(sobolSet[0],{object: pompData, est: [], transform: true, method: "subplex"})
+console.log('finished.',coef(tm), tm.value);
+//Sort all calculated tm an store 100 best one to start with in mif2.
+
+// let mf = mif2(paramsetData[0],
 //   {object: pompData,
 //     Nmif: 1,
 //     transform: true,
 //     rw_sd: snippet.determineRW(1),
-//     Np: 200,
+//     Np: 1000,
 //     varFactor: 2,
 //     coolingType: "hyperbolic",
-//     coolingFraction: cool_fraction
+//     coolingFraction: 0.05
 //   }
 // )
-// console.log((new Date() - t)/1000, mf.loglik);
+// console.log((coef(mf),new Date() - t)/1000, mf.loglik);
+// let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
+// console.log((new Date() - t)/1000, pf.loglik);
+// const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+// let header = [];
+// for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
+//   header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
+// }
 
-t = new Date()
-let pf = pfilter(currentParams,{object: pompData, params: currentParams, Np: 2,predMean: true, filterMean: true, saveStates: true, maxFail: 3000})
-console.log((new Date() - t)/1000, pf.loglik);
-
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-let header = [];
-for (let i = 0; i < Object.keys(pf.predMean[0]).length; i++) {
-  header.push({id: Object.keys(pf.predMean[0])[i], title: Object.keys(pf.predMean[0])[i]})
-}
-
-const csvWriter = createCsvWriter({
-    path: './oo.csv',
-    header:header,
-});
+// const csvWriter = createCsvWriter({
+//     path: './oo.csv',
+//     header:header,
+// });
  
- 
-csvWriter.writeRecords(pf.predMean)
-.then(() => {
-    console.log('...Done');
-});
+// csvWriter.writeRecords(pf.filterMean)
+// .then(() => {
+//     console.log('...Done');
+// });
 
-  
+
+
+

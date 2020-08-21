@@ -1,12 +1,12 @@
 const fs = require('fs');
 
-let create_dataset = function(endTime="2020-05-04",predTime=null){
+let create_dataset = function(dir_ON,dir_covidtesting, endTime="2020-05-04",predTime=null){
   t0 = new Date("2019-12-31");
   tf = new Date(endTime);
 
   // read all rows and chaeck the border time and convert the selected colnames
 	let temp, file;
-	file = fs.readFileSync('../samples/ON.csv').toString();
+	file = fs.readFileSync(dir_ON).toString();
 	let lines = file.split(/\r\n|\n/);
 	let dataReport = [];
 
@@ -34,7 +34,7 @@ let create_dataset = function(endTime="2020-05-04",predTime=null){
 
   // read all rows and chaeck the border time and convert the selected colnames
 	temp, file;
-	file = fs.readFileSync('../samples/covidtesting.csv').toString();
+	file = fs.readFileSync(dir_covidtesting).toString();
 	lines = file.split(/\r\n|\n/);
   let selected_colnames = ["Reported Date",
     "Deaths",

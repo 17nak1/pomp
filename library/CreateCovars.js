@@ -1,13 +1,13 @@
 const fs = require('fs');
 let linear = require('./everpolate').linear;
 
-let create_covars = function(endTime="2020-04-27",predTime=null){
+let create_covars = function(dir_covidtesting,endTime="2020-04-27",predTime=null){
 	let t0 = new Date("2019-12-31");
 	let tf = new Date(endTime);
 
 	// read all rows and chaeck the border time and convert the selected colnames
 	let temp, file;
-	file = fs.readFileSync('../samples/covidtesting.csv').toString();
+	file = fs.readFileSync(dir_covidtesting).toString();
 	let lines = file.split(/\r\n|\n/);
 	let selected_colnames = ["Reported Date",
 		"Total patients approved for testing as of Reporting Date",
