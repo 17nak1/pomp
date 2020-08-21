@@ -34,23 +34,38 @@ let paramsFit = snippet.paramsMod;
 for (let i = 0; i < paramsFixed.length; i++) {
   paramsFit = paramsFit.filter(e => e !== paramsFixed[i])
 }
+// read all rows and chaeck the border time and convert the selected colnames
+let file;
+file = fs.readFileSync('./samples/ParamSet_run1.csv').toString();
+let lines = file.split(/\r\n|\n/);
 
+let paramsetData = [];
+let paramsetHeader = lines[0].replace(/['"]+/g, '').split(',');
+for (let i = 1; i < lines.length; i++) {
+  let temp = lines[i].split(',');
+  if(temp.length > 1) {
+    let tempParamset =	{};
+    for(let j = 0; j < temp.length; j++){
+      tempParamset[paramsetHeader[j]] = Number(temp[j]);
+    }
+    paramsetData.push(tempParamset);
+  }
+}
 // Generate covars, data and pomp object
-data = create_dataset('../samples/ON.csv','../samples/covidtesting.csv', endTime)
-covars = create_covars('../samples/covidtesting.csv', endTime)
+data = create_dataset('./samples/ON.csv','./samples/covidtesting.csv', endTime)
+covars = create_covars('./samples/covidtesting.csv', endTime)
 let t1 = 75;
 let t2 = 139;
 globals = { nstageE: 3, nstageP: 3, nstageI: 3, nstageH: 3, nstageC: 3, nstageV: 3, pop: 10e6, T0: 75, T1: 139 };
 
 let dataHeader = data.shift();
 let dataCases = data.map((x,i,arr) => { 
-  a = {};
-  a[dataHeader[1]] = x[1];
-  a[dataHeader[2]] = x[2];
-  a[dataHeader[3]] = x[3];
-  a[dataHeader[4]] = x[4];
-  a[dataHeader[5]] = x[5];
-  return a;});
+  let a = {};
+  for (let i = 1; i < dataHeader.length; i++) {
+    a[dataHeader[i]] = x[i];
+  }
+  return a;}
+);
 let dataCasesTimes = data.map((x,i,arr) => x[0]);
 dataHeader.shift();
 
@@ -77,39 +92,43 @@ const pompData = {
   obsnames: dataHeader,
   globals: globals,
 };
-let tm = trajMatch(sobolSet[0],{object: pompData, est: [], transform: true, method: "subplex"})
+let t = new Date()
+let tm = trajMatch(paramsetData[0],{object: pompData, est: [], transform: true, method: "subplex"})
 console.log('finished.',coef(tm), tm.value);
 //Sort all calculated tm an store 100 best one to start with in mif2.
+// Check rw function
+let mf = mif2(coef(tm),
+  {object: pompData,
+    Nmif: 1,
+    transform: true,
+    rw_sd: snippet.determineRW(1),
+    Np: 100,
+    varFactor: 2,
+    coolingType: "hyperbolic",
+    coolingFraction: 0.05
+  }
+)
+console.log((coef(mf),new Date() - t)/1000, mf.loglik);
+// choose the best set with max loglik to start with in pfilter
 
-// let mf = mif2(paramsetData[0],
-//   {object: pompData,
-//     Nmif: 1,
-//     transform: true,
-//     rw_sd: snippet.determineRW(1),
-//     Np: 1000,
-//     varFactor: 2,
-//     coolingType: "hyperbolic",
-//     coolingFraction: 0.05
-//   }
-// )
-// console.log((coef(mf),new Date() - t)/1000, mf.loglik);
-// let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
-// console.log((new Date() - t)/1000, pf.loglik);
-// const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-// let header = [];
-// for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
-//   header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
-// }
 
-// const csvWriter = createCsvWriter({
-//     path: './oo.csv',
-//     header:header,
-// });
+let pf = pfilter(coef(mf),{object: pompData, Np: 100,filterMean: true, maxFail: 3000})
+console.log((new Date() - t)/1000, pf.loglik);
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+let header = [];
+for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
+  header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
+}
+
+const csvWriter = createCsvWriter({
+    path: './trajMatch/oo.csv',
+    header:header,
+});
  
-// csvWriter.writeRecords(pf.filterMean)
-// .then(() => {
-//     console.log('...Done');
-// });
+csvWriter.writeRecords(pf.filterMean)
+.then(() => {
+    console.log('...Done');
+});
 
 
 

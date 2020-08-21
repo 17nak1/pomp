@@ -55,6 +55,7 @@ exports.pfilter = function (paramSet, args) {
     rmeasure: snippet.rmeasure,
     dmeasure: snippet.dmeasure,
     initializer: snippet.initializer,
+    params: params
   });
   
   const pompObject = new pomp(pompData);
