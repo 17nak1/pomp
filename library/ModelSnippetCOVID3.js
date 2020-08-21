@@ -326,22 +326,18 @@ snippet.skeleton = function (states, params, t, dt, covar, args) {
 
 snippet.rprocess = function (states, params, t, dt, covar, args) {
   
-  let SUSC = [states.S];
-  let DEAD = [states.M];
-  let RCVD = [states.R];
-
-  let EXPD = []; PRE = []; INFD = []; HOSP = []; CARE = []; VENT = [];
-  for(let i = 0; i < args.nstageE; i++) EXPD.push(states[`E${i + 1}`]);
-  for(let i = 0; i < args.nstageP; i++) PRE.push(states[`P${i + 1}`]);
-  for(let i = 0; i < args.nstageI; i++) INFD.push(states[`I${i + 1}`]);
-  for(let i = 0; i < args.nstageH; i++) HOSP.push(states[`H${i + 1}`]);
-  for(let i = 0; i < args.nstageC; i++) CARE.push(states[`C${i + 1}`]);
-  for(let i = 0; i < args.nstageV; i++) VENT.push(states[`V${i + 1}`]);
-  
-  let EXPDQ = [], PREQ = [], INFDQ = [];
-  for(let i = 0; i < args.nstageE; i++) EXPDQ.push(states[`EQ${i + 1}`]);
-  for(let i = 0; i < args.nstageP; i++) PREQ.push(states[`PQ${i + 1}`]);
-  for(let i = 0; i < args.nstageI; i++) INFDQ.push(states[`IQ${i + 1}`]);
+  let SUSC  = [states.S];
+  let EXPD  = [states.E1, states.E2, states.E3];
+  let PRE   = [states.P1, states.P2, states.P3];
+  let INFD  = [states.I1, states.I2, states.I3];
+  let HOSP  = [states.H1, states.H2, states.H3];
+  let CARE  = [states.C1, states.C2, states.C3];
+  let VENT  = [states.V1, states.V2, states.V3];
+  let DEAD  = [states.M];
+  let RCVD  = [states.R];
+  let EXPDQ = [states.EQ1, states.EQ2, states.EQ3];
+  let PREQ  = [states.PQ1, states.PQ2, states.PQ3];
+  let INFDQ = [states.IQ1, states.IQ2, states.IQ3];
    
   
   // Different transmission rates
