@@ -55,8 +55,8 @@ for (let i = 1; i < lines.length; i++) {
 
 
 // Generate covars, data and pomp object
-data = create_dataset(endTime)
-covars = create_covars(endTime)
+data = create_dataset('../samples/ON.csv','../samples/covidtesting.csv', endTime)
+covars = create_covars('../samples/covidtesting.csv',endTime)
 let t1 = 75;
 let t2 = 139;
 globals = { nstageE: 3, nstageP: 3, nstageI: 3, nstageH: 3, nstageC: 3, nstageV: 3, pop: 10e6, T0: 75, T1: 139 };
@@ -101,23 +101,23 @@ let tm = trajMatch(paramsetData[0],{object: pompData, est: [], transform: true, 
 console.log('finished.',coef(tm), tm.value);
 t = new Date()
 
-// let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
-// console.log((new Date() - t)/1000, pf.loglik);
-// const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-// let header = [];
-// for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
-//   header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
-// }
+let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
+console.log((new Date() - t)/1000, pf.loglik);
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+let header = [];
+for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
+  header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
+}
 
-// const csvWriter = createCsvWriter({
-//     path: './oo.csv',
-//     header:header,
-// });
+const csvWriter = createCsvWriter({
+    path: './oo.csv',
+    header:header,
+});
  
-// csvWriter.writeRecords(pf.filterMean)
-// .then(() => {
-//     console.log('...Done');
-// });
+csvWriter.writeRecords(pf.filterMean)
+.then(() => {
+    console.log('...Done');
+});
 
 // let mf = mif2(paramsetData[0],
 //   {object: pompData,
