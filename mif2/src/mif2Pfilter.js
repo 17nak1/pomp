@@ -76,7 +76,7 @@ exports.mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd, t
     }
     
     let weights = [];
-    // try {
+    try {
       weights = dmeasureInternal(
         object,
         y = object.data[nt],
@@ -85,9 +85,9 @@ exports.mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd, t
         transform ? tparams : params,
         log = false
       ); 
-    // } catch (error) {
-    //   throw new Error(`In mif2.js: error in calculation of weights: ${error}`);
-    // }
+    } catch (error) {
+      throw new Error(`In mif2.js: error in calculation of weights: ${error}`);
+    }
     
     let allFinite = weights.map(w => isFinite(w)).reduce((a, b) => a & b, 1);
     if (!allFinite) {

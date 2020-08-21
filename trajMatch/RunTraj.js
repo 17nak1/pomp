@@ -5,7 +5,7 @@ const { trajMatch } = require('./src/trajMatch.js');
 const create_dataset = require('../library/CreateDataset.js');
 const create_covars = require('../library/CreateCovars.js');
 const snippet = require('../library/modelSnippetCOVID3.js');
-const { coef } = require("./src/helpers");
+const { coef } = require("../library/helpers");
 const sobolSeq =require('../library/generate-sobol/sobolSeq.js');
 const { pfilter } = require('../pfilter/src/pfilter.js');
 const { mif2 } = require('../mif2/src/mif2.js');
@@ -96,33 +96,32 @@ const pompData = {
   obsnames: dataHeader,
   globals: globals,
 };
-// let tm = trajMatch(paramsetData[0],{object: pompData, est: [], transform: true, method: "subplex"})
+let tm = trajMatch(paramsetData[0],{object: pompData, est: [], transform: true, method: "subplex"})
 
-// console.log('finished.',tm.value);
+console.log('finished.',coef(tm), tm.value);
 t = new Date()
 
-let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
-console.log((new Date() - t)/1000, pf.loglik);
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-let header = [];
-for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
-  header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
-}
+// let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
+// console.log((new Date() - t)/1000, pf.loglik);
+// const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+// let header = [];
+// for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
+//   header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
+// }
 
-const csvWriter = createCsvWriter({
-    path: './oo.csv',
-    header:header,
-});
+// const csvWriter = createCsvWriter({
+//     path: './oo.csv',
+//     header:header,
+// });
  
- 
-csvWriter.writeRecords(pf.filterMean)
-.then(() => {
-    console.log('...Done');
-});
+// csvWriter.writeRecords(pf.filterMean)
+// .then(() => {
+//     console.log('...Done');
+// });
 
 // let mf = mif2(paramsetData[0],
 //   {object: pompData,
-//     Nmif: 2,
+//     Nmif: 1,
 //     transform: true,
 //     rw_sd: snippet.determineRW(1),
 //     Np: 1000,
