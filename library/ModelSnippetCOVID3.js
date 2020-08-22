@@ -326,42 +326,50 @@ snippet.skeleton = function (states, params, t, dt, covar, args) {
 
 snippet.rprocess = function (states, params, t, dt, covar, args) {
   
-  let SUSC  = [states.S];
-  let EXPD  = [states.E1, states.E2, states.E3];
-  let PRE   = [states.P1, states.P2, states.P3];
-  let INFD  = [states.I1, states.I2, states.I3];
-  let HOSP  = [states.H1, states.H2, states.H3];
-  let CARE  = [states.C1, states.C2, states.C3];
-  let VENT  = [states.V1, states.V2, states.V3];
-  let DEAD  = [states.M];
-  let RCVD  = [states.R];
-  let EXPDQ = [states.EQ1, states.EQ2, states.EQ3];
-  let PREQ  = [states.PQ1, states.PQ2, states.PQ3];
-  let INFDQ = [states.IQ1, states.IQ2, states.IQ3];
-   
+  let amir1 = function(){
+    SUSC  = [states.S];
+    EXPD  = [states.E1, states.E2, states.E3];
+    PRE   = [states.P1, states.P2, states.P3];
+    INFD  = [states.I1, states.I2, states.I3];
+    HOSP  = [states.H1, states.H2, states.H3];
+    CARE  = [states.C1, states.C2, states.C3];
+    VENT  = [states.V1, states.V2, states.V3];
+    DEAD  = [states.M];
+    RCVD  = [states.R];
+    EXPDQ = [states.EQ1, states.EQ2, states.EQ3];
+    PREQ  = [states.PQ1, states.PQ2, states.PQ3];
+    INFDQ = [states.IQ1, states.IQ2, states.IQ3];
+  }
+  let SUSC  = [];
+  let EXPD  = [];
+  let PRE   = [];
+  let INFD  = [];
+  let HOSP  = [];
+  let CARE  = [];
+  let VENT  = [];
+  let DEAD  = [];
+  let RCVD  = [];
+  let EXPDQ = [];
+  let PREQ  = [];
+  let INFDQ = [];
   
+  amir1();
   // Different transmission rates
-
-  let TOT_PRE = 0;
+  let amir3 = function(){
   for(let i = 0 ; i < args.nstageP; i++) {
     TOT_PRE += PRE[i];
   }
-
-  let TOT_INFD = 0;
   for(let i = 0; i < args.nstageI; i++) {
     TOT_INFD += INFD[i];
   }
-  
-  let PD;
   if ( !isNaN(Number(covar.tests) )) {
     PD = params.rho * (covar.tests / (covar.tests + params.TF));
   } else {
     PD = params.rho * (15.0 / (15.0 + params.TF)) ;
   }
-  let lambdaI = params.betaI * TOT_INFD;
-  let lambdaP = params.betaI * params.theta * TOT_PRE * (1-PD);
-  let lambdaPQ = params.betaI * params.theta * TOT_PRE * PD;
-  let dQdt, lambda, lambdaQ;
+  lambdaI = params.betaI * TOT_INFD;
+  lambdaP = params.betaI * params.theta * TOT_PRE * (1-PD);
+  lambdaPQ = params.betaI * params.theta * TOT_PRE * PD;
   if (t < args.T0) {
     dQdt  = mathLib.rgammawn(params.beta_sd, dt)/dt;
     lambda = ( (lambdaI + lambdaP + params.iota) / args.pop ) * dQdt;
@@ -387,7 +395,16 @@ snippet.rprocess = function (states, params, t, dt, covar, args) {
     lambda = ( ( params.dI1 * lambdaI + params.dP1 * lambdaP + params.dT1 * params.iota ) / args.pop ) * dQdt;
     lambdaQ = ( ( params.dP1 * lambdaPQ) / args.pop ) * dQdt;
   }
-  
+  }
+  let TOT_PRE = 0;
+  let TOT_INFD = 0;
+  let PD;
+  let lambdaI  ;
+  let lambdaP  ;
+  let lambdaPQ ;
+  let dQdt, lambda, lambdaQ;
+
+  amir3();
   // From class S
   let transS = new Array(2);
   let rateS = new Array(2);
@@ -557,7 +574,7 @@ snippet.rprocess = function (states, params, t, dt, covar, args) {
   RCVD[0] += transIQ[args.nstageI-1];
   DEAD[0] += transIQ[args.nstageI];
   
-  
+  let amir2 = function(){
   states.casesI += transP[args.nstageP-1];
   states.casesIQ += transPQ[args.nstageP-1] + transP[args.nstageP+1];
   states.casesH += transP[args.nstageP] + transPQ[args.nstageP];
@@ -577,6 +594,8 @@ snippet.rprocess = function (states, params, t, dt, covar, args) {
   [states.EQ1, states.EQ2, states.EQ3] = EXPDQ;
   [states.PQ1, states.PQ2, states.PQ3] = PREQ;
   [states.IQ1, states.IQ2, states.IQ3] = INFDQ;
+  }
+  amir2();
   return states;
 }
 
