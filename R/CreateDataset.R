@@ -3,7 +3,7 @@ create_dataset <- function(endTime="2020-05-04",predTime=NULL) {
 
   t0 <- as.Date("2019-12-31")
   tf <- as.Date(endTime)
-  dat <- read.csv("ON.csv", header=TRUE)
+  dat <- read.csv("../samples/ON.csv", header=TRUE)
   dat$Date <- as.Date(dat$Date)
 
   delay <- 0

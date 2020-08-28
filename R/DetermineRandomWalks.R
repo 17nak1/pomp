@@ -5,7 +5,7 @@
               betaI=ifelse(time<75,0,0),
               theta=ifelse(time<75,0,0),
               iota=ifelse(time<75,0,0),
-              beta_sd=ifelse(time<75,rw_size,0),
+              beta_sd=ifelse(time<75,0,0),
               dI0=ifelse(time<75,0,0),
               dP0=ifelse(time<75,0,0),
               dT0=ifelse(time<75,0,0),
@@ -13,7 +13,7 @@
               dI1=ifelse(time<75,0,0),
               dP1=ifelse(time<75,0,0),
               dT1=ifelse(time<75,0,0),
-              dB1=ifelse(time<75,0,rw_size),
+              dB1=ifelse(time<75,0,0),
               qP=ifelse(time<75,0,0),
 
               qH=ifelse(time<75,0,0),
