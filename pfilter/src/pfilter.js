@@ -12,7 +12,7 @@ const { rprocessInternal } = require("../../library/rprocessInternal.js");
 const { dmeasureInternal } = require("../../library/dmeasureInternal.js");
 const { pfilter_computations } = require("../../library/pfilterComputations.js");
 // const snippet = require("../../library/modelSnippet.js");
-const snippet = require('../../library/ModelSnippetCOVID3.js');
+const snippet = require('../../library/modelSnippetCOVID3.js');
 const pomp = require('../../library/pomp.js');
 
 /**
