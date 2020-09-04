@@ -20,23 +20,32 @@ convertDate <- function (date, startTime = "2019-12-31") {
 
 modelname <- paste0("DetModel",modelnumber)
 source("SelectSample.R")
-mle <- c(betaI= 1.40758806343178, iota= 0.0177042779901833, beta_sd= 0, sigma= 0.2, kappa= 1, gammaI= 0.172133302616885, gammaH= 0.635123961314889, gammaC= 1.31234713108046, gammaV= 0.327003197582952, TF= 16031.6700539306, rho= 0.487576658764406, theta= 0.415700726852156, dI0= 0.485528264998708, dP0= 0.176249510892225, dT0= 0.263185388981837, dB0= 0, dI1= 0.331872295141556, dP1= 0.259732942470986, dT1= 0.630072923852895, dB1= 0, qP= 0.722056284667341, qH= 0.137405612125941, qC= 0.883271524025973, mI= 0.00550468107974399, mC= 0.197242061100997, mV= 0.685825470240576, S0= 1, EQ0= 0, PQ0= 0, IQ0= 0, E0= 0, P0= 0, I0= 0, H0= 0, C0= 0, V0= 0, M0= 0)
+mle <- c(betaI= 2.46744881887213, theta= 0.9999999999999872, iota= 5.334242965238772e-7, beta_sd= 0, dI0= 1, dP0= 0.9999999999999925, dT0= 1, dB0= 0, dI1= 0.4585835582162743, dP1= 1, dT1= 2.7738922270259536e-13, dB1= 0, qP= 0.16871281967335705, qH= 0.9999999999999998, qC= 0.45543754894231614, mI= 0, mC= 0, mV= 1, sigma= 0.2, kappa= 1, gammaI= 0.027210002650336837, gammaH= 0.11042090059074512, gammaC= 2.0496759026297866, gammaV= 0.23293202582712966, rho= 0.9911877804418902, TF= 22.090915777310727, S0= 1, EQ0= 0, PQ0= 0, IQ0= 0, E0= 0, P0= 0, I0= 0, H0= 0, C0= 0, V0= 0, M0= 0 )
 
-# params
-mle["beta_sd"] <- 0.01
-mle["dB0"] <- 0.2
-mle["dB1"] <- 0.2
+  # params
+# mle["beta_sd"] <- 0.01
+# mle["dB"] <- 0.2
+
 rm(params)
 
 # if (runFilter) {
-source("RunModel.R")
-coef(model) <- mle[c(params_mod,params_ic)]
-pf <- pfilter(model, filter.mean=T,save.states=T,Np=Np)
+  source("RunModel.R")
+  coef(model) <- mle[c(params_mod,params_ic)]
+  pf <- pfilter(model, filter.mean=T,save.states=T,Np=Np)
+  # pf_table <- as.data.frame(pf)
+#   save(pf_table, file = paste0(modelname,"_",samplename,".csv"))
+#   save(pf, file = paste0(modelname,"_",samplename,".rda"))
+# }
 
+# load(file.path(mainDir,paste0(modelname,"_",samplename,".rda")))
 times <- pf$times
 pf_table <- pf@saved.states
 Np <- ncol(pf_table[[1]])
 
+
+# source("CreateModel.R")
+# source("CreateCovars.R")
+# source("CreateDataset.R")
 modelname <- paste0("DetModel",modelnumber)
 full_data <- create_dataset(endTime=endTime,predTime=predTime)
 covars <- create_covars(endTime)
@@ -100,8 +109,88 @@ p <- ggplot(df,aes(x=time,y=reports,group=sim)) +
   geom_step(aes(color=sim),alpha=0.6) +
   scale_color_manual(values= cols) +
   geom_vline(xintercept=T1, linetype=1,colour="#808080")  + coord_cartesian(ylim=c(0,1000))
+pdf(file=paste0("pred_reports_",modelname,"_DM.pdf"))
+plot(p)
+dev.off()
+plot(p)
 
+
+# Plot new reported deaths
+temp <- data.frame(seq(1,ncol(states),by=1),states["deathsIIQ",]+states["deathsCV",])
+temp$sim <- nsim+2
+colnames(temp) <- c("time","deaths", "sim")
+
+
+df <- subset(sims, select=c("time","deaths","sim"))
+df$sim <- as.numeric(df$sim)
+df <- rbind(df,full_data[,c("time","deaths","sim")],temp)
+df$sim <- as.factor(df$sim)
+p <- ggplot(df,aes(x=time,y=deaths,group=sim)) +
+  geom_step(aes(color=sim),alpha=0.6) +
+  scale_color_manual(values= cols) +
+  geom_vline(xintercept=T1, linetype=1,colour="#808080")  + coord_cartesian(ylim=c(0, 100))
+pdf(file=paste0("pred_deaths_",modelname,"_DM.pdf"))
+plot(p)
+dev.off()
 plot(p)
 
 
 
+# Plot total true deaths
+temp <- data.frame(seq(1,ncol(states),by=1),states["M",])
+temp$sim <- nsim+2
+colnames(temp) <- c("time","M", "sim")
+
+
+df <- subset(sims, select=c("time","M","sim"))
+df$sim <- as.numeric(df$sim)
+df <- rbind(df,full_data[,c("time","M","sim")],temp)
+df$sim <- as.factor(df$sim)
+p <- ggplot(df,aes(x=time,y=M,group=sim)) +
+  geom_step(aes(color=sim),alpha=0.6) +
+  scale_color_manual(values= cols) +
+  geom_vline(xintercept=T1, linetype=1,colour="#808080")  + coord_cartesian(ylim=c(0, 3000)) +
+  ylab("Total deaths")
+plot(p)
+
+
+# Plot ICU and hospitalization
+temp <- data.frame(seq(1,ncol(states),by=1),
+                   colSums(states[c(paste0("H",seq(1,nstageH)),paste0("C",seq(1,nstageC)),paste0("V",seq(1,nstageC))),]),
+                   colSums(states[c(paste0("C",seq(1,nstageC)),paste0("V",seq(1,nstageC))),]),
+                   colSums(states[paste0("V",seq(1,nstageC)),]))
+temp$sim <- nsim+3
+colnames(temp) <- c("time","hospital", "ICU", "ventilator", "sim")
+
+
+df <- subset(sims,select=c(time,hospital,ICU,ventilator,sim))
+df$sim <- as.numeric(df$sim)
+df <- rbind(df,full_data[,c("time","hospital","ICU","ventilator", "sim")],temp)
+df$sim <- as.factor(df$sim)
+df <- melt(df,id=c("time","sim"))
+p <- ggplot(df,aes(x=time,y=value,group=sim,col=sim)) +
+  geom_step(aes(color=sim),alpha=0.6) +
+  facet_grid(variable ~ .,scale="free_y")  +
+  scale_color_manual(values= cols)
+pdf(file=paste0("pred_hospital_",modelname,"_DM.pdf"))
+plot(p)
+dev.off()
+plot(p)
+
+
+
+
+# Plot susceptible
+df <- subset(sims, select=c(time,S,sim))
+df$sim <- as.numeric(df$sim)
+temp <- data.frame(seq(1,ncol(states),by=1),states["S",])
+temp$sim <- nsim+2
+colnames(temp) <- c("time","S", "sim")
+df <- rbind(df,temp)
+df$sim <- as.factor(df$sim)
+p <- ggplot(df,aes(x=time,y=S/(10e6),group=sim)) +
+  geom_step(aes(color=sim),alpha=0.6) +
+  scale_color_manual(values= cols)  + ylab("Fraction susceptible") +
+  geom_vline(xintercept=T1, linetype=1,colour="#808080") + coord_cartesian(ylim=c(0.5, 1))
+plot(p)
+rm(temp)

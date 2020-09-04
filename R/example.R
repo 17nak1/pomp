@@ -1,9 +1,9 @@
 rm(list=ls())
-mainDir <- "C:/Users/Amir/Downloads/stochmodel3"
+mainDir <- "~/Git/pomp/R"
 setwd(mainDir)
 source("ModelSnippet_StochModel3.R")
 
-Np <- 1e3
+Np <-10# 1e3
 predTime <- c("2020-12-31")
 modelname <- "DetModel3"
 rw_size <- 0.05
@@ -27,7 +27,7 @@ pf <- pfilter(model, filter.mean=T, pred.mean=T,save.states=T,Np=100);pf@loglik
 Sys.time()-tt
 js=read.csv("oo.csv")
 p = as.data.frame(pf@filter.mean)
-plot(pf@filter.mean[20,])
+plot(pf@filter.mean[1,])
 points(pf@filter.mean[20,], col="red")
 
 points(js$H1, col="blue")

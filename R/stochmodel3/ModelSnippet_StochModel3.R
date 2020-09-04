@@ -123,6 +123,7 @@ rSim <- Csnippet("
 
                  if (t < T0) {
                  dQdt  = rgammawn(beta_sd, dt)/dt;
+                 printf(\" %f %f %f \\n\", beta_sd, dt ,dQdt);
                  lambda = ( (lambdaI + lambdaP + iota) / pop ) * dQdt;
                  lambdaQ = ( (lambdaPQ) / pop ) * dQdt;
                  } else if (t < T0 + 7.0) {

@@ -150,25 +150,25 @@ plot(p)
 # 
 # # 
 # # # Plot ICU and hospitalization
-# temp <- data.frame(seq(1,nrow(states),by=1),
-#                    rowSums(states[,c(paste0("H",seq(1,nstageH)),paste0("C",seq(1,nstageC)),paste0("V",seq(1,nstageC)))]),
-#                    rowSums(states[,c(paste0("C",seq(1,nstageC)),paste0("V",seq(1,nstageC)))]),
-#                    rowSums(states[,paste0("V",seq(1,nstageC))]))
-# 
-# temp$sim <- nsim+3
-# colnames(temp) <- c("time","hospital", "ICU", "ventilator", "sim")
-# 
-# df <- subset(sims,select=c(time,hospital,ICU,ventilator,sim))
-# df$sim <- as.numeric(df$sim)
-# df <- rbind(df,full_data[,c("time","hospital","ICU","ventilator", "sim")],temp)
-# df$sim <- as.factor(df$sim)
-# df <- melt(df,id=c("time","sim"))
-# p <- ggplot(df,aes(x=time,y=value,group=sim,col=sim)) +
-#   geom_step(aes(color=sim),alpha=0.6) +
-#   facet_grid(variable ~ .,scale="free_y")  +
-#   scale_color_manual(values= cols)
-# # pdf(file=paste0("pred_hospital_DM.pdf"))
-# plot(p)
+temp <- data.frame(seq(1,nrow(states),by=1),
+                   rowSums(states[,c(paste0("H",seq(1,nstageH)),paste0("C",seq(1,nstageC)),paste0("V",seq(1,nstageC)))]),
+                   rowSums(states[,c(paste0("C",seq(1,nstageC)),paste0("V",seq(1,nstageC)))]),
+                   rowSums(states[,paste0("V",seq(1,nstageC))]))
+
+temp$sim <- nsim+3
+colnames(temp) <- c("time","hospital", "ICU", "ventilator", "sim")
+
+df <- subset(sims,select=c(time,hospital,ICU,ventilator,sim))
+df$sim <- as.numeric(df$sim)
+df <- rbind(df,full_data[,c("time","hospital","ICU","ventilator", "sim")],temp)
+df$sim <- as.factor(df$sim)
+df <- melt(df,id=c("time","sim"))
+p <- ggplot(df,aes(x=time,y=value,group=sim,col=sim)) +
+  geom_step(aes(color=sim),alpha=0.6) +
+  facet_grid(variable ~ .,scale="free_y")  +
+  scale_color_manual(values= cols)
+# pdf(file=paste0("pred_hospital_DM.pdf"))
+plot(p)
 # dev.off()
 # plot(p)
 # 
