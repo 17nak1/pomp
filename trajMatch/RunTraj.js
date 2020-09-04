@@ -60,7 +60,7 @@ covars = create_covars('../samples/covidtesting.csv',endTime)
 let t1 = 75;
 let t2 = 139;
 globals = { nstageE: 3, nstageP: 3, nstageI: 3, nstageH: 3, nstageC: 3, nstageV: 3, pop: 10e6, T0: 75, T1: 139 };
-
+console.log(data.length)
 let dataHeader = data.shift();
 let dataCases = data.map((x,i,arr) => { 
   a = {};
