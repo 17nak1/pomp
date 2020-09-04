@@ -96,38 +96,75 @@ const pompData = {
   obsnames: dataHeader,
   globals: globals,
 };
-let tm = trajMatch(paramsetData[0],{object: pompData, est: [], transform: true, method: "subplex"})
+current_params = [{betaI: 0.0326576783487093,
+theta: 1.1102230246251565e-16,
+iota: 104.83105214413663,
+beta_sd: 0,
+dI0: 1,
+dP0: 0.0561651857350145,
+dT0: 0.9999999999999996,
+dB0: 0,
+dI1: 0.004495992802272308,
+dP1: 0.8295330118538808,
+dT1: 0.9999935133062721,
+dB1: 0,
+qP: 0.018757642630112537,
+qH: 1,
+qC: 0.9999999999999996,
+mI: 0.9999999999999913,
+mC: 0,
+mV: 0,
+sigma: 0.2,
+kappa: 1,
+gammaI: 0.003894693431270531,
+gammaH: 0.02123614427836244,
+gammaC: 0.15669834006885247,
+gammaV: 0.02037978756358223,
+rho: 0.551373266677974,
+TF: 886.5017868735129,
+S0: 1,
+EQ0: 0,
+PQ0: 0,
+IQ0: 0,
+E0: 0,
+P0: 0,
+I0: 0,
+H0: 0,
+C0: 0,
+V0: 0,
+M0: 0 }]
+let tm = trajMatch(current_params[0],{object: pompData, est: [], transform: true, method: "subplex"})
 
 console.log('finished.',coef(tm), tm.value);
 t = new Date()
 
-let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
-console.log((new Date() - t)/1000, pf.loglik);
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-let header = [];
-for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
-  header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
-}
+// let pf = pfilter(paramsetData[0],{object: pompData, params: paramsetData[0], Np: 100,filterMean: true, maxFail: 3000})
+// console.log((new Date() - t)/1000, pf.loglik);
+// const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+// let header = [];
+// for (let i = 0; i < Object.keys(pf.filterMean[0]).length; i++) {
+//   header.push({id: Object.keys(pf.filterMean[0])[i], title: Object.keys(pf.filterMean[0])[i]})
+// }
 
-const csvWriter = createCsvWriter({
-    path: './oo.csv',
-    header:header,
-});
+// const csvWriter = createCsvWriter({
+//     path: './oo.csv',
+//     header:header,
+// });
  
-csvWriter.writeRecords(pf.filterMean)
-.then(() => {
-    console.log('...Done');
-});
+// csvWriter.writeRecords(pf.filterMean)
+// .then(() => {
+//     console.log('...Done');
+// });
 
-// let mf = mif2(paramsetData[0],
-//   {object: pompData,
-//     Nmif: 1,
-//     transform: true,
-//     rw_sd: snippet.determineRW(1),
-//     Np: 1000,
-//     varFactor: 2,
-//     coolingType: "hyperbolic",
-//     coolingFraction: 0.05
-//   }
-// )
-// console.log((coef(mf),new Date() - t)/1000, mf.loglik);
+// // let mf = mif2(paramsetData[0],
+// //   {object: pompData,
+// //     Nmif: 1,
+// //     transform: true,
+// //     rw_sd: snippet.determineRW(1),
+// //     Np: 1000,
+// //     varFactor: 2,
+// //     coolingType: "hyperbolic",
+// //     coolingFraction: 0.05
+// //   }
+// // )
+// // console.log((coef(mf),new Date() - t)/1000, mf.loglik);
