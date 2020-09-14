@@ -6,44 +6,8 @@ source("ModelSnippet_StochModel3.R")
 predTime <- c("2020-12-31")
 modelname <- "DetModel3"
 rw_size <- 0.05
-current_params <- c(betaI= 0.0326576783487093,
-                    theta= 1.1102230246251565e-16,
-                    iota= 104.83105214413663,
-                    beta_sd= 0,
-                    dI0= 1,
-                    dP0= 0.0561651857350145,
-                    dT0= 0.9999999999999996,
-                    dB0= 0,
-                    dI1= 0.004495992802272308,
-                    dP1= 0.8295330118538808,
-                    dT1= 0.9999935133062721,
-                    dB1= 0,
-                    qP= 0.018757642630112537,
-                    qH= 1,
-                    qC= 0.9999999999999996,
-                    mI= 0.9999999999999913,
-                    mC= 0,
-                    mV= 0,
-                    sigma= 0.2,
-                    kappa= 1,
-                    gammaI= 0.003894693431270531,
-                    gammaH= 0.02123614427836244,
-                    gammaC= 0.15669834006885247,
-                    gammaV= 0.02037978756358223,
-                    rho= 0.551373266677974,
-                    TF= 886.5017868735129,
-                    S0= 1,
-                    EQ0= 0,
-                    PQ0= 0,
-                    IQ0= 0,
-                    E0= 0,
-                    P0= 0,
-                    I0= 0,
-                    H0= 0,
-                    C0= 0,
-                    V0= 0,
-                    M0= 0)
-  # c( betaI= 0.375, theta= 0.375, iota= 62.5, beta_sd= 0, dI0= 0.525, dP0= 0.525, dT0= 0.075, dB0= 0, dI1= 0.0625, dP1= 0.4375, dT1= 0.1875, dB1= 0, qP= 0.0625, qH= 0.375, qC= 0.8125, mI= 0.0125, mC= 0.625, mV= 0.6875, sigma= 0.2, kappa= 1, gammaI= 0.2, gammaH= 0.7, gammaC= 0.6625, gammaV= 0.8875, rho= 0.125, TF= 7500, S0= 1, EQ0= 0, PQ0= 0, IQ0= 0, E0= 0, P0= 0, I0= 0, H0= 0, C0= 0, V0= 0, M0= 0 )
+current_params <- c( betaI= 1.7088129733919104,      theta= 0.36247417077568833,      iota= 0.009072753906250272,      beta_sd= 0.722146657339815,      dI0= 0.3067998824837139,      dP0= 0.701577932458249,      dT0= 5.9680438369014155e-9,      dB0= 0.9629263473105145,      dI1= 0.1310459432396453,      dP1= 0.8823248285729485,      dT1= 1,      dB1= 0.8326569628565079,      qP= 0.05200304375822984,      qH= 0.5437813633584803,      qC= 1,      mI= 0,      mC= 1,      mV= 1,      sigma= 0.20000000000000018,      kappa= 1,      gammaI= 0.7105465943799485,      gammaH= 0.10000728795427358,      gammaC= 0.8732959116681945,      gammaV= 0.2564535075184308,      rho= 0.21797016009728593,      TF= 7.076093553614824,      S0= 1,      EQ0= 0,      PQ0= 0,      IQ0= 0,      E0= 0,      P0= 0,      I0= 0,      H0= 0,      C0= 0,      V0= 0,      M0= 0)
+# current_params <-c( betaI= 0.375, theta= 0.375, iota= 62.5, beta_sd= 0, dI0= 0.525, dP0= 0.525, dT0= 0.075, dB0= 0, dI1= 0.0625, dP1= 0.4375, dT1= 0.1875, dB1= 0, qP= 0.0625, qH= 0.375, qC= 0.8125, mI= 0.0125, mC= 0.625, mV= 0.6875, sigma= 0.2, kappa= 1, gammaI= 0.2, gammaH= 0.7, gammaC= 0.6625, gammaV= 0.8875, rho= 0.125, TF= 7500, S0= 1, EQ0= 0, PQ0= 0, IQ0= 0, E0= 0, P0= 0, I0= 0, H0= 0, C0= 0, V0= 0, M0= 0 )
 
 
 source("CreateModel.R")
@@ -83,12 +47,12 @@ Sys.time() -tt
 # 
 # coef(model) <- coef(sets_mf)
 # tt <-Sys.time()
-# pf <- pfilter(model, filter.mean=T, pred.mean=T,save.states=T,Np=5000);pf@loglik
-# Sys.time() -tt 
-# 
+# pf <- pfilter(model, filter.mean=T, pred.mean=T,save.states=T,Np=1000);pf@loglik
+# Sys.time() -tt
+
 # js=read.csv("../../../Gitlab/dcp-r/pomp/samples/filterMean.csv")
 # p = as.data.frame(pf@filter.mean)
-# plot(pf@filter.mean[1,])
+# plot(pf@filter.mean[20,])
 # # points(pf@filter.mean[1,], col="blue")
 # points(js$S, col="red")
 # 
