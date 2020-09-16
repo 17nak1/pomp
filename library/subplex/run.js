@@ -17,23 +17,23 @@ let run = function(){
     switch (this.iflag) {
         case -1:
           msg = 'number of function evaluations exceeds \'maxit\'';
-          console.log(msg);
+          // console.log(msg);
           break;
         case 0:
           msg = 'success! tolerance satisfied';
-          console.log(msg);
+          // console.log(msg);
           break;
         case 1:
           msg = 'limit of machine precision reached';
-          console.log(msg);
+          // console.log(msg);
           break;
         case -2:
           msg = '\'parscale\' is too small relative to \'par\'';
-          console.log(msg);
+          // console.log(msg);
           break;
         case 2: default:
           msg = 'impossible error in subplex';
-          console.log(msg);
+          // console.log(msg);
           break;
         }
     return [this.x0, this.fx, this.nfe + 1, msg]

@@ -118,8 +118,3 @@ function dcopy(n, dx, incx, dy, incy) {
   } 
 }
 
-
-
-dy = [1,2]
-dcopy(2, [-1,-2], 1, dy, 1)
-console.log('dy is', dy)

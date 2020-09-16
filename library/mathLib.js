@@ -217,12 +217,47 @@ mathLib.expit = function (x) {
 
 mathLib.qlogis = mathLib.logit;
 
+/**
+ * Gamma white noise process with intensity sigma. to find more about rgamma(n, shape, _scale, norm) check the following link.
+ * https://github.com/R-js/libRmath.js/blob/306df9aa9a17c323a0dfd7418a4c859270606f7c/src/lib/gamma/index.ts#L142
+ * 
+ */
+const _rgamma = function (n, shape, rate, scale) {
+  let _scale = gammaNormalizeParams(rate, scale);
+  if (_scale !== undefined) {
+      return rgamma(n, shape, _scale);
+  }
+  console.warn('Cannot normalize to [scale]');
+}
+
+const gammaNormalizeParams = function (rate, scale) {
+  if (scale === undefined && rate === undefined) {
+    return 1;
+  }
+  if (scale !== undefined && rate !== undefined) {
+    if (Math.abs(scale * rate - 1) >= 1e-16) {
+      console.warn('Both scale:%d and rate:%d are defined but scale <> 1/rate');
+      return undefined;
+    }
+    return scale;
+  }
+  if (scale !== undefined && rate === undefined) {
+    return scale;
+  }
+  if (scale === undefined && rate !== undefined) {
+    return 1 / rate;
+  }
+  throw new Error('unreachable code, you cant be here!');
+}
 
 mathLib.rgammawn = function (sigma, dt) {
   let sigmasq = Math.pow(sigma, 2);
-  return (sigmasq > 0) ? rgamma(1, dt / sigmasq, sigmasq) : dt;
+  return (sigmasq > 0) ?  _rgamma(1, dt / sigmasq, sigmasq) : dt;
 }
 
+/**
+ * The Log-Mean-Exp Trick avoiding over- and under-flow in doing so. It can optionally return an estimate of the standard error in this quantity.
+ */
 mathLib.logMeanExp = function (x) {
   var mx = Math.max(...x)
   var s = x.map((x,i) => Math.exp(x - mx))

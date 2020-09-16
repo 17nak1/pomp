@@ -8,6 +8,7 @@
  *  @date             June 2020
  */
 const { qnorm } = require('lib-r-math.js/dist/src/lib/normal/qnorm');
+
 /** 
  * @param {matrix} params  Initial parameters befor transform.
  * @param {array} rw_sd    An array of objects with random walk values. 

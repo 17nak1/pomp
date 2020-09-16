@@ -50,5 +50,3 @@ Main.f = function (n,x) {
 }
 Main.x0 = [11,-33];
 Main.run()
-
-console.log('aaaaaaaaa')

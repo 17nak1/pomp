@@ -9,10 +9,10 @@ const workerfn = self.workerfn = async (...args) => {
       if (typeof progress === 'function') progress();
       result = mif2(...args);
     } catch (e) {
-      console.error(e);
+      console.error("In Mif worker :", e.message);
       result =  NaN;
     }
-    console.debug("Calculation time: " , new Date() - date);
+    console.debug("Calculation time in Mif2: " , new Date() - date);
     resolve(result);
   }
 

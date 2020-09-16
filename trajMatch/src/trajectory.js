@@ -68,6 +68,7 @@ const iterate_map_native = function (times, p, deltat, t, x, nreps, ff, object) 
 }
 
 const numMapSteps = function (t1, t2, dt) {
+  if (typeof progress === 'function') progress();
   let DOUBLE_EPS = 10e-8
   let tol = Math.sqrt(DOUBLE_EPS)
   let nstep

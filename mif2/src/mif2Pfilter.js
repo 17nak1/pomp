@@ -22,8 +22,8 @@ const { partrans, coef } = require("./mif2Helpers.js");
  * @param {function} coolingFn 
  * @param {array} rw_sd                Array of objects of the parameters that has random walk. 
  * @param {number} args.tol            Tolerance. 
- * @param {number} maxFail 
- * @param {boolean} transform 
+ * @param {number} maxFail             Maximum times allowed to fail.
+ * @param {boolean} args.transform     If parmeters need to transform.
  * @param {number} _indices 
  * @returns {object}
  */
@@ -44,7 +44,7 @@ exports.mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd, t
   let alpha;
   let x = [];
 
-  for (let nt = 0; nt < ntimes; nt++) {//ntimes
+  for (let nt = 0; nt < ntimes; nt++) {
     if (typeof progress === 'function') progress();
     alpha = coolingFn(nt + 1,mifiter).alpha;
     pmg = Object.assign({}, rw_sd[nt]);
@@ -146,7 +146,7 @@ exports.mif2Pfilter = function (object, params, Np, mifiter, coolingFn, rw_sd, t
   } // end of nt loop   
   
   if (nfail > 0) {
-    console.log("warning! filtering failure occurred in mif2.");
+    // console.log("warning! filtering failure occurred in mif2.");
   }
 
   return {

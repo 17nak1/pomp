@@ -77,7 +77,7 @@ const partrans = function (pomp, params, dir = ["fromEstimationScale","toEstimat
  */
 const coef = function (object, transform = false) {
   if (Object.keys(object).length === 0) {
-    console.error("In coef(): object should be specified");
+    // console.error("In coef(): object should be specified");
     return false;
   }
 

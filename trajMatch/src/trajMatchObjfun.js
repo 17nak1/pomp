@@ -1,4 +1,4 @@
-const { coef, partrans } = require("./helpers");
+const { coef, partrans } = require("../../library/helpers");
 const { dmeasureInternal } = require("../../library/dmeasureInternal.js");
 const { trajectory } = require("./trajectoryInternal.js");
 

@@ -17,7 +17,7 @@
  * @param {object} object
  */
 exports.euler_model_simulator  = function(func, xstart, times, params, deltat, method, object) {
-  
+  if (typeof progress === 'function') progress();
   let zeronames = object.zeronames; 
   if (deltat <= 0)
     throw new Error("In euler.js: 'delta.t' should be a positive number");

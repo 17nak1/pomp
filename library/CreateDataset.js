@@ -78,7 +78,7 @@ let create_dataset = function(dir_ON,dir_covidtesting, endTime="2020-05-04",pred
 	
   let data = time.map( (x,i) => [x, reports[i], deaths[i], hospital[i], ICU[i], ventilator[i]]);
 
-  for(let i = 0; i < 23 - 1; i++){
+  for(let i = 0; i < 22; i++){ 			/* Initialize the  first 23 values for  hospital, ICU, ventilator to zero */
     data[i][3] = 0;
     data[i][4] = 0;
     data[i][5] = 0;
@@ -86,7 +86,7 @@ let create_dataset = function(dir_ON,dir_covidtesting, endTime="2020-05-04",pred
   
   data.unshift(["time","reports","deaths","hospital","ICU","ventilator"]);
 
-	if (predTime != null) {
+	if (predTime !== null) {
     predTime = new Date(predTime);
 		let add_time = Math.ceil(Math.abs(tf - predTime) / (1000 * 3600 * 24));
 		for(let i =0; i < add_time; i++)

@@ -22,10 +22,8 @@ let pomp = class Pomp {
       this.params = args.params || {};
       this.covar = args.covar || {};
       this.tcovar = args.tcovar || {};
-      this.obsnames = args.obsnames || {};
       this.statenames = args.statenames || {};
       this.paramnames = args.paramnames || {};
-      this.covarnames = args.covarnames || {};
       this.zeronames = args.zeronames || {};
       this.PACKAGE = args.PACKAGE || {};
       this.fromEstimationScale = args.fromEstimationScale || {};
@@ -80,35 +78,40 @@ let pomp = class Pomp {
 
 
 pomp.prototype.interpolator = function(t){
-  let n = this.covar.length,
-      nCovarnames = this.covarnames.length;  
-  point = {}; 
+  let n = this.covar.length;
+  let covarnames = Object.keys(this.covar[0]);
+  let nCovarnames = covarnames.length; 
+      
+  let point = {}; 
   if (n === 0) {
-      for(let k = 0; k < nCovarnames; k++)
-          point[this.covarnames[k]] = 0;
+    for(let k = 0; k < nCovarnames; k++)
+        point[covarnames[k]] = 0;
   }
 
   if (n === 1) {
-      for(let k = 0; k < nCovarnames; k++)
-          point[this.covarnames[k]] = +this.covar[0][this.covarnames[k]];
+    for(let k = 0; k < nCovarnames; k++)
+        point[covarnames[k]] = +this.covar[0][covarnames[k]];
   }
 
   if (t <= this.tcovar[0]) {
-      for(let k = 0; k < nCovarnames; k++)
-          point[this.covarnames[k]] = +this.covar[0][this.covarnames[k]] + (t - this.tcovar[0]) * (this.covar[1][this.covarnames[k]] - this.covar[0][this.covarnames[k]]) / (this.tcovar[1] -this.tcovar[0])
+    for(let k = 0; k < nCovarnames; k++) {
+        point[covarnames[k]] = +this.covar[0][covarnames[k]] + (t - this.tcovar[0]) * (this.covar[1][covarnames[k]] - this.covar[0][covarnames[k]]) / (this.tcovar[1] -this.tcovar[0])
+    }
   } else if(t >= this.tcovar[n - 1]){
-      for(let k = 0; k < nCovarnames; k++)
-          point[this.covarnames[k]] = +this.covar[n-1][this.covarnames[k]] + (t - this.tcovar[n-1]) * (this.covar[n-2][this.covarnames[k]] - this.covar[n-1][this.covarnames[k]]) / (this.tcovar[n-2] -this.tcovar[n-1])
-  } else
+    for(let k = 0; k < nCovarnames; k++) {
+        point[covarnames[k]] = +this.covar[n-1][covarnames[k]] + (t - this.tcovar[n-1]) * (this.covar[n-2][covarnames[k]] - this.covar[n-1][covarnames[k]]) / (this.tcovar[n-2] -this.tcovar[n-1])
+    }
+  } else {
       for (let i = 0; i < n; i++) {
           if (t > this.tcovar[i] && t <= this.tcovar[i+1]) {
-              for(let k = 0; k < nCovarnames; k++)
-                  point[this.covarnames[k]] = +this.covar[i][this.covarnames[k]] + (t - this.tcovar[i]) * (this.covar[i+1][this.covarnames[k]] - this.covar[i][this.covarnames[k]]) / (this.tcovar[i+1] -this.tcovar[i])
+            for(let k = 0; k < nCovarnames; k++) {
+                point[covarnames[k]] = +this.covar[i][covarnames[k]] + (t - this.tcovar[i]) * (this.covar[i+1][covarnames[k]] - this.covar[i][covarnames[k]]) / (this.tcovar[i+1] -this.tcovar[i])
+            }
             return point;
           }
       }
-  
+    }
   return point;
-  };
+};
 
 module.exports = pomp;

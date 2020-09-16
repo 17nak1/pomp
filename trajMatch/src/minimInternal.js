@@ -1,9 +1,7 @@
-const { partrans } = require("./helpers");
+const { partrans } = require("../../library/helpers");
 const subplex = require('../../library/subplex/subplex.js');
 
-exports.minimInternal = function(objfun, start, est, object, method, transform,
-  lower = null, upper = null, lb = lower, ub = upper, args)
-{
+exports.minimInternal = function(objfun, start, est, object, method, transform, lower = null, upper = null, lb = lower, ub = upper, args) {
   
   let ep = "In minimInternal:";
   if (Object.keys(start).length < 1)
@@ -30,7 +28,6 @@ exports.minimInternal = function(objfun, start, est, object, method, transform,
     conv = NaN;
     evals = [1,0];
     msg = "no optimization performed";
-
   } else {
 
     if (method == 'subplex') {
@@ -50,7 +47,6 @@ exports.minimInternal = function(objfun, start, est, object, method, transform,
     }
 
     msg = opt[3];
-
     if (method == "nloptr") {
       throw new Error ("Method 'nloptr' is not translated");
     } else {
@@ -60,7 +56,6 @@ exports.minimInternal = function(objfun, start, est, object, method, transform,
         start[est[i]] = opt[0][i];
       conv = 0;//opt.convergence;
       evals = opt[2];
-
     }
   }
 

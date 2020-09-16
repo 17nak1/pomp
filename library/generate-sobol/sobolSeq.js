@@ -162,7 +162,8 @@ sobolSequence = function(dim, numberOfPoints){
 
 sobolseq.sobolDesign = function(lowerBounds, upperBounds, numberOfPoints) {
   let dim = Object.values(lowerBounds).length
-  let result = new Array(numberOfPoints).fill({})//.map(() => {});
+  
+  let result = new Array(numberOfPoints).fill(0).map(() => new Object());
   let sobolresult = sobolSequence(dim, numberOfPoints)
   var diff
   if(Object.values(lowerBounds).length != Object.values(upperBounds).length) {
@@ -178,7 +179,7 @@ sobolseq.sobolDesign = function(lowerBounds, upperBounds, numberOfPoints) {
   for(j = 0; j < dim; ++j){
     diff = upperBounds[keys[j]] - lowerBounds[keys[j]];
     for(i = 0; i < numberOfPoints; i++) {
-      result[i][keys[j]] = Object.values(lowerBounds)[j] +  diff * sobolresult[i][j]
+      result[i][keys[j]] = lowerBounds[keys[j]] +  diff * sobolresult[i][j];
     }
   }
   return result

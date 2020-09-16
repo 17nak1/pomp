@@ -49,7 +49,7 @@ exports.trajectory = function (object, params, times, t0, asDataFrame, args){
       throw new Error(` ${ep} in map iterator: ${error}`)
     }  
 
-  } else if (type=="vectorfield") {
+  } else if (type === "vectorfield") {
     throw new Error("vectorfield is not translated.");
   
   } else {

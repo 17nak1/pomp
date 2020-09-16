@@ -1,19 +1,18 @@
-const { pfilter } = require('./pfilter.js');
+const { trajMatch } = require('./trajMatch.js');
 
 // Add the workerfn to the self namespace so it can be called by whatever wraps the output bundle
 const workerfn = self.workerfn = async (...args) => {
   const work = (resolve, reject) => () => {
     let result;
-    let date = new Date();
+    let date = Date.now();
     try {
       if (typeof progress === 'function') progress();
-      // console.log("STARTING PFILTER");
-      result = pfilter(...args);
+      result = trajMatch(...args);
     } catch (e) {
       console.error(e);
       result =  NaN;
     }
-    console.debug("Calculation time in pfilter: " , new Date() - date)
+    console.debug("Calculation time in trajMatch: " , Date.now() - date, result.loglik)
     resolve(result);
   }
 

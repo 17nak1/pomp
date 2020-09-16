@@ -7,23 +7,23 @@
  *  @author           Nazila Akhavan, nazila@kingsds.network
  *  @date             June 2020
  */
+
 const { cooling, partrans, coef } = require("./mif2Helpers.js");
 const { mif2Pfilter } = require("./mif2Pfilter.js");
-const snippet = require("../../library/modelSnippetCOVID3.js");
+const snippet = require("../../library/modelSnippet.js");
 const pomp = require('../../library/pomp.js');
-/**
+
 /**
  * An iterated filtering algorithm for estimating the parameters of a partially-observed Markov process.
  * Running mif2 causes the algorithm to perform a specified number of particle-filter iterations.
  * At each iteration, the particle filter is performed on a perturbed version of the model, in which the
- *  parameters to be estimated are subjected to random
- *  perturbations at each observation.
+ * parameters to be estimated are subjected to random perturbations at each observation.
  * This extra variability effectively smooths the likelihood surface and combats particle depletion by 
  * introducing diversity into particle population.
  * As the iterations progress, the magnitude of the perturbations is diminished according to a user-specified cooling schedule.
  * The algorithm is presented and justified in Ionides et al. (2015).
  * 
- * @param {array} params                Input parameters.
+ * @param {object} params                Input parameters.
  * @param {object} args 
  * @param {object} args.object          An object of class POMP.
  * @param {number} args.Nmif            Number of of filtering iterations.
@@ -55,6 +55,28 @@ const pomp = require('../../library/pomp.js');
  *  @param {number} nfail          Number of times that pfilter failed. 
  */
 exports.mif2 = function (params, args) {
+  
+  /* Check if input data is string and convert them to numbers */
+  let covarkeys = Object.keys(args.object.covar[0])
+  for(let k =0; k < args.object.covar.length; k++) {
+    for (let j = 0; j < covarkeys.length; j++)
+      if((args.object.covar[k][covarkeys[j]]) === 'NaN')  {
+        args.object.covar[k][covarkeys[j]] = NaN;
+      } else {
+        args.object.covar[k][covarkeys[j]] = Number(args.object.covar[k][covarkeys[j]]);
+      }
+  }
+
+  let datakeys = Object.keys(args.object.data[0])
+  for(let k =0; k < args.object.data.length; k++) {
+    for (let j = 0; j < datakeys.length; j++)
+      if((args.object.data[k][datakeys[j]]) === 'NaN')  {
+        args.object.data[k][datakeys[j]] = NaN;
+      } else {
+        args.object.data[k][datakeys[j]] = Number(args.object.data[k][datakeys[j]]);
+      }
+  }
+  params = params.params? params.params : params;
   const pompData = Object.assign(args.object,{
     rprocess: snippet.rprocess,
     rmeasure: snippet.rmeasure,
@@ -124,56 +146,23 @@ exports.mif2 = function (params, args) {
   
   let pfp;
   let n
-  // one mif iteration
-  // try {
-  //   pfp = mif2Pfilter(
-  //     object = pompObject,
-  //     params = paramMatrix,
-  //     Np = Np,
-  //     mifiter = _ndone + n + 1,
-  //     coolingFn,
-  //     rw_sd =  rw_sd_matrix,
-  //     tol = tol,
-  //     maxFail,
-  //     transform,
-  //     _indices = _indices,
-  //   )
-  
-  // } catch (error) {
-  //   throw new Error(`In mif2: Iterate the filtering stopped: ${error}`)
-  // }
-  // if (!pfp) return {};
-  
-  // paramMatrix = pfp.paramMatrix;
-  // convRec[n].loglik = pfp.loglik;
-  // convRec[n].nfail = pfp.nfail;
-
-  // convRec[n + 1].loglik = null;
-  // convRec[n + 1].nfail = null;
-  // Object.assign(convRec[n + 1], coef(pfp));
-  // _indices = pfp.indices;
-  // End of one mif iteration
   
   while( snapShotStart < Nmif) {
     n = snapShotStart;
     if (typeof progress === 'function') progress();
-    // try {
-      pfp = mif2Pfilter(
-        object = pompObject,
-        params = paramMatrix,
-        Np = Np,
-        mifiter = _ndone + n + 1,
-        coolingFn,
-        rw_sd =  rw_sd_matrix,
-        tol = tol,
-        maxFail,
-        transform,
-        _indices = _indices,
-      )
-      
-    // } catch (error) {
-    //   throw new Error(`In mif2: Iterate the filtering stopped: ${error}`)
-    // }
+    
+    pfp = mif2Pfilter(
+      object = pompObject,
+      params = paramMatrix,
+      Np = Np,
+      mifiter = _ndone + n + 1,
+      coolingFn,
+      rw_sd =  rw_sd_matrix,
+      tol = tol,
+      maxFail,
+      transform,
+      _indices = _indices,
+    )
     
     if (!pfp) return {};
     paramMatrix = pfp.paramMatrix;
@@ -185,15 +174,6 @@ exports.mif2 = function (params, args) {
     Object.assign(convRec[n + 1], coef(pfp));
     
     _indices = pfp.indices;
-    
-  // } else {// object for the snapshot
-  //   result = {
-  //     // ...args,
-  //     snapShotStart: snapShotStart + 1,
-  //     paramMatrix: paramMatrix,
-  //     convRec: convRec,
-  //     _indices: _indices,
-  //   }
     snapShotStart++;  
   }
   

@@ -4,9 +4,6 @@
   "description": "Data analysis via partially observed Markov processes",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack-dev-server",
-    "build": "webpack --config webpack.config.js",
     "build-worker": "webpack --config worker.webpack.config.js"
   },
   "repository": {
