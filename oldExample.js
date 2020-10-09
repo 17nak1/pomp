@@ -4,7 +4,6 @@
  */
 let rootDir ='.'
 const fs = require('fs');
-const { mif2 } = require('./mif2/src/mif2.js');
 const { pfilter } = require('./pfilter/src/pfilter.js');
 const snippet = require('./library/modelSnippet.js');
 const { coef } = require("./mif2/src/mif2Helpers.js");
@@ -85,19 +84,7 @@ const pompData = {
   covarnames: dataCovar_name,
   obsnames: dataCases_name,
 };
-let t = new Date();
-// let mf = mif2(currentParams,
-//   {object: pompData,
-//     Nmif: 1,
-//     transform: true,
-//     rw_sd: snippet.determineRW("R0"),
-//     Np: 10000,
-//     varFactor: 2,
-//     coolingType: "hyperbolic",
-//     coolingFraction: cool_fraction
-//   }
-// )
-// console.log((new Date() - t)/1000, mf.loglik, coef(mf));
+
 
 t = new Date()
 let pf = pfilter(currentParams,{object: pompData, params: currentParams, Np: 10000, predMean: true, filterMean: true, saveStates: true, maxFail: 3000})
