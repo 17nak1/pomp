@@ -11,8 +11,7 @@ const { initState } = require("./initState.js");
 const { rprocessInternal } = require("../../library/rprocessInternal.js");
 const { dmeasureInternal } = require("../../library/dmeasureInternal.js");
 const { pfilter_computations } = require("../../library/pfilterComputations.js");
-// const snippet = require("../../library/modelSnippet.js");
-const snippet = require('../../library/modelSnippetCOVID3.js');
+const snippet = require('../../library/modelSnippet.js');
 const pomp = require('../../library/pomp.js');
 
 /**
@@ -137,11 +136,11 @@ exports.pfilter = function (paramSet, args) {
   let X;
   for (let nt = 0; nt < ntimes; nt++) {
     if (typeof progress === 'function') progress();
-    try {
+    // try {
       X = rprocessInternal(pompObject, x, [times[nt],times[nt + 1]], params, 1)
-    } catch (e) {
-      throw new Error(`In pfilterInternal: Process simulation error: ${e}`)
-    }
+    // } catch (e) {
+    //   throw new Error(`In pfilterInternal: Process simulation error: ${e}`)
+    // }
   
     if (predVar) { // check for nonfinite state variables and parameters
       allFinite = X.every(a => a.every(x =>isFinite(x)))
